@@ -44,14 +44,14 @@
 
 - **MySQL**
 
-  ![Mysql database tables](./resource/rm_p1.png "Mysql database tables")
+  ![Mysql database tables](https://img.scdn.io/i/687f39aecc97b_1753168302.png "Mysql database tables")
 
   - **`jobs`**：存储岗位详细信息
-    ![jobs table structure](./resource/rm_p2.png "'jobs' table structure")
+    ![jobs table structure](https://img.scdn.io/i/687f39d840b6b_1753168344.webp "'jobs' table structure")
   - **`resume_job_matches`**：存储简历与岗位的匹配结果
-    ![resume_job_matches table structure](./resource/rm_p3.png "'resume_job_matches' table structure")
+    ![resume_job_matches table structure](https://img.scdn.io/i/687f39ead8000_1753168362.webp "'resume_job_matches' table structure")
   - **`resumes`**：存储简历详细信息
-    ![resumes table structure](./resource/rm_p4.png "resumes table structure")
+    ![resumes table structure](https://img.scdn.io/i/687f39facdcd4_1753168378.webp "resumes table structure")
 - **Redis**
   - **哈希表（`Hash`）**：存储简历和岗位的详细信息
   - **集合（`Set`）**：建立类别、地区和技能的索引
