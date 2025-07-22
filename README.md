@@ -47,10 +47,13 @@
   ![Mysql database tables](https://img.scdn.io/i/687f39aecc97b_1753168302.png "Mysql database tables")
 
   - **`jobs`**：存储岗位详细信息
+    
     ![jobs table structure](https://img.scdn.io/i/687f39d840b6b_1753168344.webp "'jobs' table structure")
   - **`resume_job_matches`**：存储简历与岗位的匹配结果
+    
     ![resume_job_matches table structure](https://img.scdn.io/i/687f39ead8000_1753168362.webp "'resume_job_matches' table structure")
   - **`resumes`**：存储简历详细信息
+    
     ![resumes table structure](https://img.scdn.io/i/687f39facdcd4_1753168378.webp "resumes table structure")
 - **Redis**
   - **哈希表（`Hash`）**：存储简历和岗位的详细信息
