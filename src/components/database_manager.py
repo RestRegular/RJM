@@ -1,3 +1,6 @@
+#
+# Created by RestRegular on 2025/7/18
+#
 from typing import Dict, Any, List, Optional, Union, Set, Callable
 import json
 import mysql.connector
@@ -58,6 +61,18 @@ class DataBaseManager:
 
     def set_kafka_config(self, kafka_config: Optional[Dict[str, str]]):
         self._kafka_config = kafka_config
+
+    def get_mysql_config(self):
+        return self._mysql_config
+
+    def get_redis_config(self):
+        return self._redis_config
+
+    def get_kafka_config(self):
+        return self._kafka_config
+
+    def get_kafka_producer_config(self):
+        return self._kafka_producer_config
 
     # ========== 连接管理 ==========
     def connect(self) -> Set[str]:
@@ -669,7 +684,7 @@ class DataBaseManager:
             return None
         if consumer_id in self._kafka_consumers:
             print("此ID消费者已存在，已取消重复创建")
-            return None
+            return self._kafka_consumers[consumer_id]
         group_id = group_id or self._kafka_random_group_id()
         try:
             consumer = KafkaConsumer(
@@ -692,7 +707,8 @@ class DataBaseManager:
         return self._kafka_consumers[consumer_id] if consumer_id in self._kafka_consumers else None
 
     def kafka_get_flink_consumer(self, consumer_id: str,
-                                 deserialization_schema: DeserializationSchema = SimpleStringSchema()) -> Union[None, FlinkKafkaConsumer]:
+                                 deserialization_schema: DeserializationSchema = SimpleStringSchema())\
+            -> Union[None, FlinkKafkaConsumer]:
         if consumer_id not in self._kafka_consumers:
             print(f"不存在此消费者实例: '{consumer_id}'")
             return None
