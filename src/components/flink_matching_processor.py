@@ -3,7 +3,7 @@
 #
 import sys
 import json
-from typing import List, Tuple, Optional
+from typing import List, Tuple, Optional, Dict, Union
 
 from pyflink.common import Types, Row
 from pyflink.common.typeinfo import RowTypeInfo
@@ -11,13 +11,16 @@ from pyflink.datastream import StreamExecutionEnvironment, MapFunction
 from pyflink.datastream.connectors.jdbc import JdbcSink, JdbcConnectionOptions, JdbcExecutionOptions
 
 from src.components.database_manager import DataBaseManager
+from src.components.data_manager import ResumeDataBuilder, JobDataBuilder
+from src.components.match_score_calculator import RJMatchDegreeCalculator
 
 # 定义匹配阈值, 分数大于等于阈值的简历将被筛选出来
-MATCH_THRESHOLD = 0.5
+MATCH_THRESHOLD = 50
 
 
+@DeprecationWarning
 def calculate_match_score(resume: dict, job: dict) -> float:
-    """计算简历与岗位的匹配度"""
+    """粗略计算简历与岗位的匹配度"""
     # 技能匹配度
     resume_skills = set(resume.get("skills", []))
     job_skills = set(job.get("required_skills", []))
@@ -75,7 +78,7 @@ class ResumeMatcher(MapFunction):
     def open(self, runtime_context):
         self.redis_manager = DataBaseManager(redis_config=self.redis_config)
 
-    def map(self, value: str) -> List[Tuple[str, str, float]]:
+    def map(self, value: str) -> List[Tuple[str, str, str, Dict[str, Union[int, float]]]]:
         try:
             resume = json.loads(value)
             resume_id = resume.get("resume_id")
@@ -84,23 +87,19 @@ class ResumeMatcher(MapFunction):
 
             # 从Redis获取所有岗位的键
             job_keys = self.redis_manager.redis_gets("job:info:*")
-            matches = []
+            matches: List[Tuple[str, str, str, Dict[str, Union[int, float]]]] = []
 
             for job_key in job_keys:
                 # 解析岗位ID并获取岗位数据
                 job_id = job_key.split(":")[-1]
                 job_data = self.redis_manager.redis_hgetall(job_key)
-                job = {
-                    "required_skills": job_data.get("required_skills", []),
-                    "required_experience": int(job_data.get('required_experience', 0)),
-                    "category": job_data.get("category"),
-                    "salary_low": int(job_data.get("salary_low")),
-                    "salary_high": int(job_data.get("salary_high"))
-                }
                 # 计算匹配度并过滤
-                score = calculate_match_score(resume, job)
-                if score >= MATCH_THRESHOLD:
-                    matches.append((str(resume_id), str(job_id), round(score, 2)))
+                degree, dimension_scores = RJMatchDegreeCalculator().calculate_overall_match(
+                    resume_builder=ResumeDataBuilder.from_dict(resume),
+                    job_builder=JobDataBuilder.from_dict(job_data)
+                )
+                if degree >= MATCH_THRESHOLD:
+                    matches.append((str(resume_id), str(job_id), f"{degree}%", dimension_scores))
 
             return matches
         except Exception as e:

@@ -237,8 +237,8 @@ class RJMatcher:
             JobExecutionException: 当Flink任务执行失败时抛出
         """
         env = StreamExecutionEnvironment.get_execution_environment()
-        env.set_parallelism(self._flink_config['parallelism'])
-        lib_jars = self._flink_config['lib_jar_path']
+        env.set_parallelism(self._flink_config['parallelism'] if 'parallelism' in self._flink_config else 1)
+        lib_jars = self._flink_config['lib_jar_path'] if 'lib_jar_path' in self._flink_config else []
         env.add_jars(*lib_jars if isinstance(lib_jars, list) else str(lib_jars))
         source_topic = self._db_manager.get_kafka_config()["source_topic"]
         self._db_manager.kafka_create_consumer(
@@ -263,7 +263,7 @@ class RJMatcher:
             }) for result in results],
             output_type=BasicTypeInfo.STRING_TYPE_INFO())
 
-        # 配置结果输出到Kafka ToDo: This part needs to be tested.
+        # 配置结果输出到Kafka
         target_topic = self._db_manager.get_kafka_config()["target_topic"]
         if not self._db_manager.kafka_exist_topic(target_topic):
             self._db_manager.kafka_create_topic(target_topic)
@@ -332,7 +332,6 @@ class RJMatcher:
             KafkaConsumerError: 当Kafka消费者创建失败时抛出
             ConsumptionError: 当消息消费过程中发生错误时抛出
         """
-        # ToDo: This part needs to be tested.
         self._db_manager.kafka_create_consumer(
             "consume-result",
             topics=[self._db_manager.get_kafka_config()['target_topic']],
@@ -392,14 +391,13 @@ def main():
             'target_topic': 'target-topic'
         },
         flink_config={
-            'parallelism': 5,
-            'lib_jar_path': ["file:///usr/local/flink/lib/flink-connector-jdbc-1.17.2.jar",
-                             "file:///usr/local/flink/lib/mysql-connector-j-8.0.33.jar"]
+            'parallelism': 5
         })
     matcher.set_kafka_producer_config(
         batch_size=16384,
         buffer_memory=33554432)
     # Note: 测试使用模拟数据
+    # Attention: 数据格式已更换为前端接口的真实数据格式，目前暂未实现模拟新数据格式的功能
     from src.components.data_generator import DataGenerator
     resumes, jobs = DataGenerator().generate_data(100, 10)
     matcher.upload_job_datas(jobs)
