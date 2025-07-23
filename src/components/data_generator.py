@@ -5,9 +5,9 @@ import random
 
 import pandas as pd
 from faker import Faker
-from typing import Dict, Any, Tuple, List
+from typing import Dict, Any, Tuple, List, Optional
 
-from database_manager import DataBaseManager
+from src.components.database_manager import DataBaseManager
 
 # 初始化Faker
 fake = Faker('zh_CN')
@@ -100,16 +100,20 @@ class DataGenerator:
         }
         return job_
 
-    def generate_data(self, num_resumes: int = 10000, num_jobs: int = 100) -> \
+    def generate_data(self, num_resumes: int = 10000, num_jobs: int = 100,
+                      save_resume_data_to_file: Optional[str] = None,
+                      save_job_data_to_file: Optional[str] = None) -> \
             Tuple[List[Dict[str, Any]], List[Dict[str, Any]]]:
         """生成并保存简历和岗位数据"""
         # 生成简历
         resumes_ = [self.generate_resume(i) for i in range(1, num_resumes + 1)]
-        pd.DataFrame(resumes_).to_json("./dataset/resumes.json", orient="records", force_ascii=False, indent=2)
+        if save_resume_data_to_file:
+            pd.DataFrame(resumes_).to_json(save_resume_data_to_file, orient="records", force_ascii=False, indent=2)
 
         # 生成岗位
         jobs_ = [self.generate_job(i) for i in range(1, num_jobs + 1)]
-        pd.DataFrame(jobs_).to_json("./dataset/jobs.json", orient="records", force_ascii=False, indent=2)
+        if save_job_data_to_file:
+            pd.DataFrame(jobs_).to_json(save_job_data_to_file, orient="records", force_ascii=False, indent=2)
 
         print(f"已生成 {num_resumes} 份简历和 {num_jobs} 个岗位数据")
         return resumes_, jobs_

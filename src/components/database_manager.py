@@ -1,6 +1,8 @@
 #
 # Created by RestRegular on 2025/7/18
 #
+import threading
+import time
 from typing import Dict, Any, List, Optional, Union, Set, Callable
 import json
 import mysql.connector
@@ -44,6 +46,7 @@ class DataBaseManager:
         self._kafka_producer = None
         self._kafka_admin = None
         self._kafka_consumers: Dict[str, KafkaConsumer] = {}  # 存储消费者实例
+        self._consume_flags = {}
 
         # 自动连接
         if self._mysql_config:
@@ -129,7 +132,9 @@ class DataBaseManager:
         if self._kafka_admin:
             self._kafka_admin.close()
         # 关闭所有消费者
-        for consumer in self._kafka_consumers.values():
+        for consumer_id, consumer in self._kafka_consumers.items():
+            if consumer_id in self._consume_flags and self._consume_flags[consumer_id]:
+                self.kafka_stop_continuous_consume(consumer_id)
             consumer.close()
         self._kafka_consumers.clear()
 
@@ -439,7 +444,8 @@ class DataBaseManager:
 
         try:
             data = self._redis_client.hgetall(hash_key)
-            return {k.decode() if hasattr(k, 'decode') else str(k): json.loads(v) if isinstance(v, str) else v for k, v in data.items()}
+            return {k.decode() if hasattr(k, 'decode') else str(k): json.loads(v) if isinstance(v, str) else v for k, v
+                    in data.items()}
         except Exception as e:
             print(f"Redis哈希获取失败: {e}")
             return {}
@@ -687,14 +693,17 @@ class DataBaseManager:
             return self._kafka_consumers[consumer_id]
         group_id = group_id or self._kafka_random_group_id()
         try:
-            consumer = KafkaConsumer(
-                bootstrap_servers=self._kafka_config.get('bootstrap_servers', 'localhost:9092'),
-                group_id=group_id,
-                auto_offset_reset=auto_offset_reset,
-                enable_auto_commit=enable_auto_commit,
-                value_deserializer=lambda x: json.loads(x.decode('utf-8')),
-                key_deserializer=lambda x: x.decode('utf-8') if x else None,
+            config = {
+                'bootstrap_servers': self._kafka_config.get('bootstrap_servers', 'localhost:9092'),
+                'group_id': group_id,
+                'auto_offset_reset': auto_offset_reset,
+                'enable_auto_commit': enable_auto_commit,
+                'value_deserializer': lambda x: json.loads(x.decode('utf-8')),
+                'key_deserializer': lambda x: x.decode('utf-8') if x else None,
                 **kwargs
+            }
+            consumer = KafkaConsumer(
+                **config
             )
             consumer.subscribe(topics)
             self._kafka_consumers[consumer_id] = consumer
@@ -707,7 +716,7 @@ class DataBaseManager:
         return self._kafka_consumers[consumer_id] if consumer_id in self._kafka_consumers else None
 
     def kafka_get_flink_consumer(self, consumer_id: str,
-                                 deserialization_schema: DeserializationSchema = SimpleStringSchema())\
+                                 deserialization_schema: DeserializationSchema = SimpleStringSchema()) \
             -> Union[None, FlinkKafkaConsumer]:
         if consumer_id not in self._kafka_consumers:
             print(f"不存在此消费者实例: '{consumer_id}'")
@@ -769,6 +778,59 @@ class DataBaseManager:
         except Exception as e:
             print(f"消费消息失败: {e}")
             return []
+
+    def kafka_start_continuous_consume(self,
+                                       consumer_id: str,
+                                       callback: Callable[[Any], None] = None,
+                                       end_callback: Callable[[], None] = None,
+                                       timeout_ms: int = 1000,
+                                       daemon: bool = True) -> None:
+        """
+        开始持续消费消息
+
+        :param consumer_id: 消费者标识
+        :param callback: 每条消息的回调函数
+        :param end_callback: 消费结束时的回调函数
+        :param timeout_ms: 每次poll的超时时间
+        :param daemon: 是否以守护线程运行
+        """
+        if consumer_id not in self._kafka_consumers:
+            print(f"消费者 {consumer_id} 不存在")
+            return
+        self._consume_flags[consumer_id] = True
+
+        def consume_loop(ecb):
+            times = 0
+            while self._consume_flags.get(consumer_id, False):
+                times += 1
+                print(f"消费者 [{consumer_id}] 开始第 {times} 次消费")
+                self.kafka_consume(
+                    consumer_id=consumer_id,
+                    timeout_ms=timeout_ms,
+                    callback=callback
+                )
+            print(f"消费者 [{consumer_id}] 已停止消费")
+            if ecb: ecb()
+
+        consume_thread = threading.Thread(
+            target=consume_loop,
+            args=[end_callback])
+        consume_thread.daemon = daemon
+        consume_thread.start()
+        print(f"消费者 [{consumer_id}] 已开始持续消费")
+
+    def kafka_stop_continuous_consume(self, consumer_id: str) -> None:
+        """
+        停止持续消费
+
+        :param consumer_id: 消费者标识
+        """
+        if consumer_id in self._consume_flags:
+            if self._consume_flags[consumer_id]:
+                self._consume_flags[consumer_id] = False
+                print(f"已发送停止指令给消费者 [{consumer_id}]")
+        else:
+            print(f"消费者 [{consumer_id}] 未在持续消费中")
 
     def kafka_commit_offsets(self,
                              consumer_id: str,

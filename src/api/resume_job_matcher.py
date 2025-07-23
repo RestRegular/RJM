@@ -1,6 +1,7 @@
 #
 # Created by RestRegular on 2025/7/22
 #
+import threading
 from typing import Dict, Any, List, Optional, Callable
 import sys
 import json
@@ -8,6 +9,7 @@ import json
 from pyflink.datastream import StreamExecutionEnvironment
 from pyflink.datastream.connectors.kafka import KafkaSink, KafkaRecordSerializationSchema
 from pyflink.common.serialization import SimpleStringSchema
+from pyflink.common.typeinfo import BasicTypeInfo
 
 from src.components.database_manager import DataBaseManager
 from src.components.flink_matching_processor import ResumeMatcher
@@ -66,14 +68,31 @@ class RJMatcher:
                 - parallelism: 并行度设置
                 - lib_jar_path: Flink所需的外部JAR包路径，可为字符串或列表
         """
-        self.db_manager = DataBaseManager(
+        self._db_manager = DataBaseManager(
             redis_config=redis_config,
             kafka_config=kafka_config)
-        self.flink_config = flink_config
-        self.kafka_producer_config = {
+        self._flink_config = flink_config
+        self._kafka_producer_config = {
             'bootstrap.servers': kafka_config["bootstrap_servers"],
             'key.serializer': 'org.apache.kafka.common.serialization.StringSerializer',
             'value.serializer': 'org.apache.kafka.common.serialization.StringSerializer'
+        }
+        if self._db_manager.kafka_exist_topic(kafka_config['source_topic']):
+            self._db_manager.kafka_delete_topic(kafka_config['source_topic'])
+        if self._db_manager.kafka_exist_topic(kafka_config['target_topic']):
+            self._db_manager.kafka_delete_topic(kafka_config['target_topic'])
+
+    def set_kafka_producer_config(self, **configs):
+        """
+        更新 Kafka 生产者配置，合并新配置到已有配置中
+        该方法会将传入的配置参数合并到已有的 Kafka 生产者配置中，
+        若存在相同的配置项，新传入的配置将覆盖原有配置值。
+        参数:
+        ** configs: 关键字参数形式的 Kafka 生产者配置项
+        """
+        self._kafka_producer_config = {
+            **self._kafka_producer_config,
+            **configs
         }
 
     def upload_job_datas(self, jobs: List[Dict[str, Any]]):
@@ -112,32 +131,32 @@ class RJMatcher:
             # 1. 用 Hash 存职位详情（字段级存储，方便后续按需读取）
             hash_key = f"job:info:{job_id}"
             for field, value in job.items():
-                self.db_manager.redis_hset(hash_key, {field: value})
+                self._db_manager.redis_hset(hash_key, {field: value})
 
             # 2. 用 Set 建分类索引（category）
             category = job["category"]
             category_set_key = f"job:category:{category}"
-            self.db_manager.redis_sadd(category_set_key, job_id)
+            self._db_manager.redis_sadd(category_set_key, job_id)
 
             # 3. 用 Set 建地区索引（location）
             location = job["location"]
             location_set_key = f"job:location:{location}"
-            self.db_manager.redis_sadd(location_set_key, job_id)
+            self._db_manager.redis_sadd(location_set_key, job_id)
 
             # 4. 用 Set 建技能索引（required_skills）
             for skill in job["required_skills"]:
                 skill_set_key = f"job:skill:{skill}"
-                self.db_manager.redis_sadd(skill_set_key, job_id)
+                self._db_manager.redis_sadd(skill_set_key, job_id)
 
             # 5. 用 ZSet 建最低薪资索引（salary_low）
             salary_low = job["salary_low"]
             salary_low_zset_key = "job:salary:low"
-            self.db_manager.redis_zadd(salary_low_zset_key, {job_id: salary_low})
+            self._db_manager.redis_zadd(salary_low_zset_key, {job_id: salary_low})
 
             # 6. 用 ZSet 建工作经验索引（required_experience）
             experience = job["required_experience"]
             experience_zset_key = "job:experience"
-            self.db_manager.redis_zadd(experience_zset_key, {job_id: experience})
+            self._db_manager.redis_zadd(experience_zset_key, {job_id: experience})
 
     def upload_resume_datas(self, resumes: List[Dict[str, Any]]):
         """
@@ -177,14 +196,14 @@ class RJMatcher:
             KeyError: 当简历数据缺少必需字段时抛出
             MessageTooLargeError: 当消息大小超过Kafka配置限制时抛出
         """
-        source_topic = self.db_manager.get_kafka_config()["source_topic"]
-        if not self.db_manager.kafka_exist_topic(source_topic):
-            self.db_manager.kafka_create_topic(source_topic)
-        self.db_manager.kafka_produce_batch(
+        source_topic = self._db_manager.get_kafka_config()["source_topic"]
+        if not self._db_manager.kafka_exist_topic(source_topic):
+            self._db_manager.kafka_create_topic(source_topic)
+        self._db_manager.kafka_produce_batch(
             topic=source_topic,
             messages=[{'value': r} for r in resumes])
 
-    def match(self, in_debug_mode: bool = True):
+    def _match(self, in_debug_mode: bool = True):
         """
         启动Flink流处理任务，实现职位与简历的实时匹配
 
@@ -218,27 +237,38 @@ class RJMatcher:
             JobExecutionException: 当Flink任务执行失败时抛出
         """
         env = StreamExecutionEnvironment.get_execution_environment()
-        env.set_parallelism(self.flink_config['parallelism'])
-        lib_jars = self.flink_config['lib_jar_path']
+        env.set_parallelism(self._flink_config['parallelism'])
+        lib_jars = self._flink_config['lib_jar_path']
         env.add_jars(*lib_jars if isinstance(lib_jars, list) else str(lib_jars))
-        source_topic = self.db_manager.get_kafka_config()["source_topic"]
-        self.db_manager.kafka_create_consumer(
+        source_topic = self._db_manager.get_kafka_config()["source_topic"]
+        self._db_manager.kafka_create_consumer(
             consumer_id="resume-data-source",
             topics=[source_topic]
         )
         resumes_source = env.add_source(
-            self.db_manager.kafka_get_flink_consumer('resume-data-source')
+            self._db_manager.kafka_get_flink_consumer('resume-data-source')
         )
         # 按职位类别分区，确保同类职位和简历在同一处理节点
         partitioned_resumes = resumes_source.key_by(lambda x: json.loads(x).get("category", ""))
         # 应用匹配逻辑
-        resume_matches = partitioned_resumes.map(ResumeMatcher(self.db_manager.get_redis_config()))
+        resume_matches = partitioned_resumes.map(ResumeMatcher(self._db_manager.get_redis_config()))
         if in_debug_mode:
-            resume_matches.print("Debug Print ")
+            resume_matches.print("Debug Print")
+
+        resume_matches = resume_matches.flat_map(
+            lambda results: [json.dumps({
+                'resume_id': result[0],
+                'job_id': result[1],
+                'score': result[2]
+            }) for result in results],
+            output_type=BasicTypeInfo.STRING_TYPE_INFO())
+
         # 配置结果输出到Kafka ToDo: This part needs to be tested.
-        target_topic = self.db_manager.get_kafka_config()["target_topic"]
+        target_topic = self._db_manager.get_kafka_config()["target_topic"]
+        if not self._db_manager.kafka_exist_topic(target_topic):
+            self._db_manager.kafka_create_topic(target_topic)
         kafka_sink = KafkaSink.builder() \
-            .set_bootstrap_servers(self.kafka_producer_config['bootstrap.servers']) \
+            .set_bootstrap_servers(self._kafka_producer_config['bootstrap.servers']) \
             .set_record_serializer(
                 KafkaRecordSerializationSchema.builder()
                 .set_topic(target_topic)
@@ -252,9 +282,28 @@ class RJMatcher:
             print(f"Stop executing job 'Job-Resume Matching'.")
             sys.exit(0)
 
+    def start_match(self, in_debug_mode: bool = True) -> threading.Thread:
+        """
+        在新线程中启动match方法
+        参数:
+            in_debug_mode: 是否启用调试模式
+        返回:
+            已启动的线程对象
+        """
+        match_thread = threading.Thread(
+            target=self._match,
+            args=(in_debug_mode,),
+            name="Resume-Match-Thread"
+        )
+        match_thread.daemon = True
+        match_thread.start()
+        return match_thread
+
     def subscribe_result(self,
+                         time_out: Optional[int] = 10000,
                          max_message_size: Optional[int] = None,
-                         callback: Callable[[str], None] = None) -> List[str]:
+                         single_message_callback: Callable[[Any], None] = None,
+                         all_messages_callback: Callable[[List[Any]], None] = None):
         """
         订阅并消费职位-简历匹配结果
 
@@ -262,6 +311,9 @@ class RJMatcher:
         支持设置最大消息数量和自定义回调函数，适用于实时获取匹配结果。
 
         参数:
+            time_out: Optional[int], 可选
+                超时时间(毫秒), 默认为10000毫秒
+
             max_message_size: Optional[int], 可选
                 最大消费消息数量，默认为None（持续消费直到被中断）。
                 若指定该参数，当消费消息数量达到该值时将停止消费。
@@ -270,11 +322,6 @@ class RJMatcher:
                 消息处理回调函数，默认为None。
                 若提供该函数，每条消息都会调用该函数进行处理；
                 若未提供，则将消息收集到列表中并在结束时返回。
-
-        返回:
-            List[str]
-                消费到的消息列表，仅当未提供callback时有效。
-                若提供了callback，返回空列表。
 
         注意:
             - 消费者配置为从最新偏移量开始消费（auto_offset_reset='latest'）
@@ -286,28 +333,35 @@ class RJMatcher:
             ConsumptionError: 当消息消费过程中发生错误时抛出
         """
         # ToDo: This part needs to be tested.
-        consumer = self.db_manager.kafka_create_consumer(
+        self._db_manager.kafka_create_consumer(
             "consume-result",
-            topics=[self.db_manager.get_kafka_config()['target_topic']],
+            topics=[self._db_manager.get_kafka_config()['target_topic']],
             auto_offset_reset='latest',
             enable_auto_commit=True,
-            auto_commit_interval_ms=5000
+            auto_commit_interval_ms=5000,
+            key_deserializer=lambda key: str(key)
         )
-        messages = []
-        message_count = 0
-        try:
-            for message in consumer:
-                msg_value = message.value
-                if callback:
-                    callback(msg_value)
-                else:
-                    messages.append(msg_value)
-                message_count += 1
-                if max_message_size and message_count >= max_message_size:
-                    break
-        except Exception as e:
-            print(f"消费消息时发生错误: {str(e)}")
-        return messages
+        result_count = 0
+
+        def cb(result):
+            nonlocal result_count
+            result_count += 1
+            if max_message_size and result_count >= max_message_size:
+                self._db_manager.kafka_stop_continuous_consume("consume-result")
+            else:
+                single_message_callback(result)
+        self._db_manager.kafka_start_continuous_consume(
+            "consume-result",
+            timeout_ms=time_out,
+            callback=cb,
+            end_callback=all_messages_callback
+        )
+
+    def cancel_subscribe_result(self):
+        """
+        此方法用于在未指定最大消费消息数量的情况下手动停止订阅消费匹配结果
+        """
+        self._db_manager.kafka_stop_continuous_consume("consume-result")
 
     def close(self) -> None:
         """
@@ -319,12 +373,58 @@ class RJMatcher:
         建议在使用完RJMatcher实例后调用该方法，
         特别是在长时间运行的应用程序中，以避免资源泄漏。
         """
-        self.db_manager.close()
+        self._db_manager.close()
 
 
 def main():
-    pass
+    # 测试代码, 使用示例
+    matcher = RJMatcher(
+        redis_config={
+            'host': 'localhost',
+            'port': 6379,
+            'db': 0,
+            'decode_responses': True
+        },
+        kafka_config={
+            'bootstrap_servers': 'localhost:9092',
+            'client_id': 'job-matching-client',
+            'source_topic': 'source-topic',
+            'target_topic': 'target-topic'
+        },
+        flink_config={
+            'parallelism': 5,
+            'lib_jar_path': ["file:///usr/local/flink/lib/flink-connector-jdbc-1.17.2.jar",
+                             "file:///usr/local/flink/lib/mysql-connector-j-8.0.33.jar"]
+        })
+    matcher.set_kafka_producer_config(
+        batch_size=16384,
+        buffer_memory=33554432)
+    # Note: 测试使用模拟数据
+    from src.components.data_generator import DataGenerator
+    resumes, jobs = DataGenerator().generate_data(100, 10)
+    matcher.upload_job_datas(jobs)
+    matcher.upload_resume_datas(resumes)
+    match_thread = matcher.start_match(True)
+    results = []
+
+    def callback(result):
+        nonlocal results
+        # Note: 可以在这里进一步处理每一个匹配结果
+        results.append(result['value'])  # Note: 需要自己收集所有结果
+        print(result['value'])
+
+    def print_all_results():
+        nonlocal results
+        print(results)
+    matcher.subscribe_result(time_out=1000, max_message_size=None,
+                             single_message_callback=callback,
+                             all_messages_callback=print_all_results)
+
+    # Note: 需要将Flink计算线程加入到主线程中
+    match_thread.join(20)
+    # Note: 注意释放资源
+    matcher.close()
 
 
 if __name__ == '__main__':
-    pass
+    main()

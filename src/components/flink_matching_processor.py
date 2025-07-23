@@ -10,7 +10,7 @@ from pyflink.common.typeinfo import RowTypeInfo
 from pyflink.datastream import StreamExecutionEnvironment, MapFunction
 from pyflink.datastream.connectors.jdbc import JdbcSink, JdbcConnectionOptions, JdbcExecutionOptions
 
-from database_manager import DataBaseManager
+from src.components.database_manager import DataBaseManager
 
 # 定义匹配阈值, 分数大于等于阈值的简历将被筛选出来
 MATCH_THRESHOLD = 0.5
