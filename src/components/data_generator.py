@@ -7,19 +7,23 @@ import pandas as pd
 from faker import Faker
 from typing import Dict, Any, Tuple, List, Optional
 
+from src.components.error_manager import deprecated
+
 from src.components.database_manager import DataBaseManager
 
 # 初始化Faker
 fake = Faker('zh_CN')
 
 
+@deprecated("DataGenerator 已被弃用，请使用 src.components.data_manager 中的数据构建器生成模拟数据")
 class DataGenerator:
     """数据生成器：生成简历和岗位数据"""
 
     def __init__(self):
         # 定义岗位类别和技能标签
         self.job_categories = {
-            "技术": ["Python", "Java", "C++", "JavaScript", "前端开发", "后端开发", "全栈开发", "数据挖掘", "机器学习", "深度学习"],
+            "技术": ["Python", "Java", "C++", "JavaScript", "前端开发", "后端开发", "全栈开发", "数据挖掘", "机器学习",
+                     "深度学习"],
             "产品": ["产品经理", "产品助理", "需求分析", "用户研究", "产品设计"],
             "运营": ["内容运营", "用户运营", "活动运营", "数据运营", "电商运营"],
             "市场": ["市场营销", "品牌推广", "公关", "市场调研", "广告投放"],
@@ -87,7 +91,9 @@ class DataGenerator:
 
         job_ = {
             "job_id": job_id,
-            "title": f"{random.choice(['高级', '中级', '初级', '资深', ''])} {category} {random.choice(['专员', '经理', '主管', '工程师', '专家'])}",
+            "title": f"{random.choice(['高级', '中级', '初级', '资深', ''])} "
+                     f"{category} "
+                     f"{random.choice(['专员', '经理', '主管', '工程师', '专家'])}",
             "category": category,
             "company": fake.company(),
             "location": fake.province(),
@@ -119,6 +125,7 @@ class DataGenerator:
         return resumes_, jobs_
 
 
+@deprecated("此函数已被弃用，请使用 src.api.resume_job_matcher 中的 RJMatcher.upload_job_datas 方法")
 def save_jobs(manager: DataBaseManager, jobs):
     for job in jobs:
         job_id = job["job_id"]
@@ -153,6 +160,7 @@ def save_jobs(manager: DataBaseManager, jobs):
         manager.redis_zadd(experience_zset_key, {job_id: experience})
 
 
+@deprecated("此函数已被弃用，请使用 src.api.resume_job_matcher 中的 RJMatcher.upload_resume_datas 方法")
 def save_resumes(manager: DataBaseManager, resumes):
     for resume in resumes:
         resume_id = resume["resume_id"]
