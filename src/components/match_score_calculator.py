@@ -1,12 +1,18 @@
 #
 # Created by RestRegular on 2025/7/23
 #
+import logging
 import re
 from datetime import datetime
 from typing import Dict, Optional, Any, Tuple, Union
 
+import jieba
+
 from src.components.error_manager import RJMConfigurationError
 from src.components.data_manager import ResumeDataBuilder, JobDataBuilder
+
+jieba.default_logger.setLevel(logging.ERROR)
+jieba.initialize()
 
 __all__ = [
     'MatchDimensionWeightConfigBuilder',
@@ -223,6 +229,7 @@ class RJMatchDegreeCalculator:
     核心功能：基于配置的权重，计算简历与岗位在多个维度的匹配度，并生成综合评分。
     支持的匹配维度包括：职位名称、技能、工作经验、地点、薪资、学历、项目经验及其他因素。
     """
+
     _weights: Dict[str, Optional[Any]] = None
 
     def __init__(self, weight_config_builder: Optional[MatchDimensionWeightConfigBuilder] = None):
@@ -301,9 +308,6 @@ class RJMatchDegreeCalculator:
         if not text:
             return []
 
-        # 提取单词（正则匹配字母/数字组合）
-        words = re.findall(r'\b\w+\b', text.lower())
-
         # 停用词列表（中文常见无意义词汇）
         stop_words = {
             '的', '了', '在', '是', '我', '有', '和', '就', '不', '人', '都',
@@ -311,8 +315,10 @@ class RJMatchDegreeCalculator:
             '着', '没有', '看', '好', '自己', '这'
         }
 
+        content = jieba.lcut(text)
+
         # 过滤停用词和短词
-        return [word for word in words if word not in stop_words and len(word) > 1]
+        return [word for word in content if word not in stop_words and len(word) > 1]
 
     def _calculate_title_match(self, resume: dict, job: dict) -> float:
         """
@@ -730,14 +736,14 @@ class RJMatchDegreeCalculator:
 
         # 计算各维度匹配度
         matches = {
-            'job_title_match': self._calculate_title_match(resume, job),
-            'skill_match': self._calculate_skill_match(resume, job),
-            'work_experience_match': self._calculate_work_experience_match(resume, job),
-            'location_match': self._calculate_location_match(resume, job),
-            'salary_match': self._calculate_salary_match(resume, job),
-            'education_match': self._calculate_education_match(resume, job),
-            'project_experience_match': self._calculate_project_experience_match(resume, job),
-            'other_factors': self._calculate_other_factors(resume, job)
+            'job_title_match': round(self._calculate_title_match(resume, job), 2),
+            'skill_match': round(self._calculate_skill_match(resume, job), 2),
+            'work_experience_match': round(self._calculate_work_experience_match(resume, job), 2),
+            'location_match': round(self._calculate_location_match(resume, job), 2),
+            'salary_match': round(self._calculate_salary_match(resume, job), 2),
+            'education_match': round(self._calculate_education_match(resume, job), 2),
+            'project_experience_match': round(self._calculate_project_experience_match(resume, job), 2),
+            'other_factors': round(self._calculate_other_factors(resume, job), 2),
         }
 
         # 计算加权总分（各维度得分 * 权重之和）
@@ -749,7 +755,6 @@ class RJMatchDegreeCalculator:
         return round(total_score * 100, 1), matches
 
 
-# 示例用法（模块自测代码）
 if __name__ == "__main__":
     # 示例简历数据（模拟实际简历结构）
     sample_resume = {
@@ -791,12 +796,21 @@ if __name__ == "__main__":
     weight_builder = MatchDimensionWeightConfigBuilder.with_default_config()
     # 2. 创建匹配度计算器
     matcher = RJMatchDegreeCalculator(weight_builder)
+
+    # 随机生成的模拟实际数据
+    random_resume = ResumeDataBuilder.generate_random_data()
+    random_job = JobDataBuilder.generate_random_data()
+
+    from pprint import pprint
+    pprint(random_resume.build())
+    pprint(random_job.build())
     # 3. 计算匹配度（传入简历和岗位数据构建器）
     overall_score, detailed_matches = matcher.calculate_overall_match(
-        ResumeDataBuilder.from_dict(sample_resume),
-        JobDataBuilder.from_dict(sample_job))
+        random_resume,
+        random_job)
 
     # 输出结果
+    print()
     print(f"总体匹配度: {overall_score}%")
     print("\n各维度匹配度:")
     for dimension, score in detailed_matches.items():

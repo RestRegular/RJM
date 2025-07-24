@@ -7,7 +7,7 @@ from typing import Dict, Any, List, Optional, Union, Set, Callable
 import json
 import mysql.connector
 from mysql.connector import Error
-import redis
+from redis import Redis
 from kafka import KafkaProducer, KafkaAdminClient, KafkaConsumer, TopicPartition, OffsetAndMetadata
 from pyflink.datastream.connectors.kafka import FlinkKafkaConsumer, DeserializationSchema
 from pyflink.common.serialization import SimpleStringSchema
@@ -42,7 +42,7 @@ class DataBaseManager:
 
         # 初始化连接对象
         self._mysql_conn = None
-        self._redis_client = None
+        self._redis_client: Optional[Redis] = None
         self._kafka_producer = None
         self._kafka_admin = None
         self._kafka_consumers: Dict[str, KafkaConsumer] = {}  # 存储消费者实例
@@ -100,7 +100,7 @@ class DataBaseManager:
     def _connect_redis(self) -> bool:
         """连接Redis数据库"""
         try:
-            self._redis_client = redis.Redis(**self._redis_config)
+            self._redis_client = Redis(**self._redis_config)
             # 测试连接
             self._redis_client.ping()
             return True
@@ -363,7 +363,7 @@ class DataBaseManager:
             print(f"Redis设置失败: {e}")
             return False
 
-    def redis_get(self, key: str) -> Any:
+    async def redis_get(self, key: str) -> Any:
         """
         获取Redis键值
 
@@ -375,22 +375,31 @@ class DataBaseManager:
             return None
 
         try:
-            value = self._redis_client.get(key)
+            value = await self._redis_client.get(key)
             return json.loads(value) if value else None
         except Exception as e:
             print(f"Redis获取失败: {e}")
             return None
 
-    def redis_gets(self, keys: str) -> Any:
+    def redis_keys(self, pattern: str) -> Any:
+        """
+        获取Redis键
+
+        :param pattern: 键匹配正则表达式模式
+        :return: 正则表达式匹配 keys 的所有键
+        """
         if not self._redis_client:
             print("Redis未连接")
             return None
         try:
-            values = self._redis_client.keys(keys)
+            values = self._redis_client.keys(pattern)
             return values if values else None
         except Exception as e:
             print(f"Redis获取失败: {e}")
             return None
+
+    def redis_exists(self, *keys: str) -> bool:
+        return self._redis_client.exists(*keys)
 
     def redis_hset(self, hash_key: str, mapping: Dict[str, Any]) -> bool:
         """
@@ -655,6 +664,7 @@ class DataBaseManager:
             self._kafka_admin.delete_topics(topic_names)
             if len(topic_names) > 0:
                 print(f"主题 {', '.join([f'<{topic}>' for topic in topic_names])} 删除请求已发送")
+                time.sleep(1)
             return True
         except Exception as e:
             print(f"删除主题失败: {e}")
@@ -784,7 +794,8 @@ class DataBaseManager:
                                        callback: Callable[[Any], None] = None,
                                        end_callback: Callable[[], None] = None,
                                        timeout_ms: int = 1000,
-                                       daemon: bool = True) -> None:
+                                       daemon: bool = True,
+                                       in_debug_mode: bool = True) -> None:
         """
         开始持续消费消息
 
@@ -793,6 +804,7 @@ class DataBaseManager:
         :param end_callback: 消费结束时的回调函数
         :param timeout_ms: 每次poll的超时时间
         :param daemon: 是否以守护线程运行
+        :param in_debug_mode: 是否以 debug 模式运行
         """
         if consumer_id not in self._kafka_consumers:
             print(f"消费者 {consumer_id} 不存在")
@@ -803,14 +815,16 @@ class DataBaseManager:
             times = 0
             while self._consume_flags.get(consumer_id, False):
                 times += 1
-                print(f"消费者 [{consumer_id}] 开始第 {times} 次消费")
+                if in_debug_mode:
+                    print(f"消费者 [{consumer_id}] 开始第 {times} 次消费")
                 self.kafka_consume(
                     consumer_id=consumer_id,
                     timeout_ms=timeout_ms,
                     callback=callback
                 )
             print(f"消费者 [{consumer_id}] 已停止消费")
-            if ecb: ecb()
+            if ecb:
+                ecb()
 
         consume_thread = threading.Thread(
             target=consume_loop,
