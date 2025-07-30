@@ -1,6 +1,7 @@
 #
 # Created by RestRegular on 2025/7/23
 #
+import json
 import random
 import re
 from typing import List, Dict, Any, Optional, Union, Set
@@ -1009,6 +1010,8 @@ def main():
     from pprint import pprint
     pprint(ResumeDataBuilder.generate_random_data().build())
     pprint(JobDataBuilder.generate_random_data().build())
+
+    # print(json.dumps(ResumeDataBuilder.generate_random_data().build()))
 
 
 if __name__ == '__main__':
