@@ -1,3 +1,5 @@
+import pprint
+
 import requests
 
 from test import *
@@ -5,7 +7,7 @@ from test import *
 result = requests.post(f"{BASE_URL}/matching/resume_to_job", json={
     "ids": [1, 2, 3],
     "num": 10,
-    "threshold": 15
+    "threshold": 10
 })
 
-print(result.json())
+pprint.pprint(result.json())

@@ -2,7 +2,9 @@ import pprint
 
 import requests
 
-result = requests.get("http://localhost:8000/api/resume/bat_get", params={
+from test import *
+
+result = requests.get(f"{BASE_URL}/job/bat_get", params={
     'page': 5,
     'page_size': 2
 })

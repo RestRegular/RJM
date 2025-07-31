@@ -4,7 +4,7 @@
 import logging
 import re
 from datetime import datetime
-from typing import Dict, Optional, Any, Tuple, Union
+from typing import Dict, Optional, Any, Tuple, Union, List
 
 import jieba
 
@@ -32,7 +32,6 @@ class MatchDimensionWeightConfigBuilder:
 
     def __init__(self):
         """初始化建造者实例"""
-        self._count = 0  # 已配置的权重维度数量
         # 初始化权重配置字典，包含所有支持的匹配维度，初始值为None（未配置）
         self._weight_config: Dict[str, Optional[float]] = {
             'job_title_match': None,  # 职位名称匹配度权重
@@ -55,7 +54,6 @@ class MatchDimensionWeightConfigBuilder:
         Returns:
             建造者实例自身（支持链式调用）
         """
-        self._count += 1
         self._weight_config['job_title_match'] = weight
         return self
 
@@ -69,7 +67,6 @@ class MatchDimensionWeightConfigBuilder:
         Returns:
             建造者实例自身（支持链式调用）
         """
-        self._count += 1
         self._weight_config['skill_match'] = weight
         return self
 
@@ -83,7 +80,6 @@ class MatchDimensionWeightConfigBuilder:
         Returns:
             建造者实例自身（支持链式调用）
         """
-        self._count += 1
         self._weight_config['work_experience_match'] = weight
         return self
 
@@ -97,7 +93,6 @@ class MatchDimensionWeightConfigBuilder:
         Returns:
             建造者实例自身（支持链式调用）
         """
-        self._count += 1
         self._weight_config['location_match'] = weight
         return self
 
@@ -111,7 +106,6 @@ class MatchDimensionWeightConfigBuilder:
         Returns:
             建造者实例自身（支持链式调用）
         """
-        self._count += 1
         self._weight_config['salary_match'] = weight
         return self
 
@@ -125,7 +119,6 @@ class MatchDimensionWeightConfigBuilder:
         Returns:
             建造者实例自身（支持链式调用）
         """
-        self._count += 1
         self._weight_config['education_match'] = weight
         return self
 
@@ -139,7 +132,6 @@ class MatchDimensionWeightConfigBuilder:
         Returns:
             建造者实例自身（支持链式调用）
         """
-        self._count += 1
         self._weight_config['project_experience_match'] = weight
         return self
 
@@ -153,8 +145,57 @@ class MatchDimensionWeightConfigBuilder:
         Returns:
             建造者实例自身（支持链式调用）
         """
-        self._count += 1
         self._weight_config['other_factors'] = weight
+        return self
+
+    def from_dict(self, config_dict: Dict[str, float]) -> 'MatchDimensionWeightConfigBuilder':
+        """
+        从字典构建权重配置并进行验证
+
+        Args:
+            config_dict: 包含权重配置的字典，键需与支持的匹配维度一致
+
+        Returns:
+            建造者实例自身（支持链式调用）
+
+        Raises:
+            RJMConfigurationError: 当字典中存在无效字段、缺少必要字段或权重值不合法时抛出
+        """
+        errors = []
+
+        # 检查是否包含未知字段
+        valid_fields = set(self._weight_config.keys())
+        input_fields = set(config_dict.keys())
+        unknown_fields = input_fields - valid_fields
+        if unknown_fields:
+            errors.append(f"Unknown fields: {', '.join(unknown_fields)}")
+
+        # 检查是否缺少必要字段
+        missing_fields = valid_fields - input_fields
+        if missing_fields:
+            errors.append(f"Missing required fields: {', '.join(missing_fields)}")
+
+        # 检查权重值是否合法
+        for field in valid_fields:
+            if field not in config_dict:
+                continue  # 缺少的字段已在上面检查
+
+            value = config_dict[field]
+            # 检查是否为数字类型
+            if not isinstance(value, (int, float)):
+                errors.append(f"Invalid type for {field}: expected number, got {type(value).__name__}")
+            # 检查是否为非负数
+            elif value < 0:
+                errors.append(f"Weight for {field} cannot be negative: {value}")
+
+        # 如果有错误，抛出异常
+        if errors:
+            raise RJMConfigurationError("Match Dimension Weight Config from dict", errors)
+
+        # 所有检查通过，设置权重值
+        for field, value in config_dict.items():
+            self._weight_config[field] = float(value)
+
         return self
 
     def build(self) -> Dict[str, float]:
@@ -172,9 +213,9 @@ class MatchDimensionWeightConfigBuilder:
             RJMConfigurationError: 当存在未配置的维度或权重总和不为1.0时抛出
         """
         # 检查是否所有维度均已配置
-        if self._count != len(self._weight_config):
-            missing_fields = [field for field in self._weight_config
-                              if self._weight_config[field] is None]
+        missing_fields = [field for field in self._weight_config
+                          if self._weight_config[field] is None]
+        if missing_fields:
             raise RJMConfigurationError(
                 "Match Dimension Weight Config",
                 [f"Miss fields: {missing_fields}"]
@@ -182,7 +223,7 @@ class MatchDimensionWeightConfigBuilder:
 
         # 检查权重总和是否为1.0
         weight_sum = sum(self._weight_config.values())
-        if weight_sum != 1.0:
+        if not abs(weight_sum - 1.0) < 1e-9:
             raise RJMConfigurationError(
                 "Match Dimension Weight Config",
                 [
@@ -320,7 +361,7 @@ class RJMatchDegreeCalculator:
         # 过滤停用词和短词
         return [word for word in content if word not in stop_words and len(word) > 1]
 
-    def _calculate_title_match(self, resume: dict, job: dict) -> float:
+    def _calculate_job_title_match(self, resume: dict, job: dict) -> float:
         """
         计算职位名称匹配度
 
@@ -736,7 +777,7 @@ class RJMatchDegreeCalculator:
 
         # 计算各维度匹配度
         matches = {
-            'job_title_match': round(self._calculate_title_match(resume, job), 2),
+            'job_title_match': round(self._calculate_job_title_match(resume, job), 2),
             'skill_match': round(self._calculate_skill_match(resume, job), 2),
             'work_experience_match': round(self._calculate_work_experience_match(resume, job), 2),
             'location_match': round(self._calculate_location_match(resume, job), 2),
@@ -751,8 +792,29 @@ class RJMatchDegreeCalculator:
         for key, weight in self._weights.items():
             total_score += matches[key] * weight
 
-        # 转换为百分比并保留1位小数
-        return round(total_score * 100, 1), matches
+        # 转换为百分比并保留2位小数
+        return round(total_score * 100, 2), matches
+
+    def calculate_specified_dimension_score(self, resume_builder: ResumeDataBuilder,
+                                            job_builder: JobDataBuilder,
+                                            dimensions: Union[str, List[str]]):
+        # 获取简历和岗位的字典数据
+        resume = resume_builder.build()
+        job = job_builder.build()
+
+        dimensions = dimensions if isinstance(dimensions, list) else [dimensions]
+        scores: Dict[str, float] = {}
+
+        for dimension in dimensions:
+            calculator_name = f"_calculate_{dimension}"
+            if hasattr(self, calculator_name):
+                calculator = getattr(self, calculator_name)
+                value = round(calculator(resume, job) * 100, 2)
+                scores[dimension] = value
+            else:
+                raise ValueError(f"invalid match dimension: {dimension}")
+
+        return scores
 
 
 if __name__ == "__main__":
