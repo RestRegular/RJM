@@ -22,5 +22,6 @@ urlpatterns = [
     path('api/', include('resumes.urls')),
     path('api/', include('jobs.urls')),
     path('api/', include('matching.urls')),
+    path('api/', include('calculating.urls')),
     path('api-auth/', include('rest_framework.urls')),
 ]

@@ -31,6 +31,8 @@ ALLOWED_HOSTS = []
 # Application definition
 
 INSTALLED_APPS = [
+    'calculating',
+    'matching',
     'resumes',
     'jobs',
     'rest_framework',

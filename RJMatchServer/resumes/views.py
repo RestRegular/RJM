@@ -122,11 +122,10 @@ def batch_get_resume_data(request) -> Response:
     """
     try:
         # 解析查询参数
-        ids_param = request.query_params.get('ids', '')
+        ids_param = request.query_params.getlist('ids', '')
         category = request.query_params.get('category', '')
-        page = int(request.query_params.get('page', 1))
-        page_size = int(request.query_params.get('page_size', 10))
-
+        page = int(request.query_params.get('page', -1))
+        page_size = int(request.query_params.get('page_size', -1))
         # 限制最大页大小
         page_size = min(page_size, 100)
         offset = (page - 1) * page_size
@@ -137,8 +136,7 @@ def batch_get_resume_data(request) -> Response:
         # 按ID列表筛选
         if ids_param:
             try:
-                id_list = [int(id_str.strip()) for id_str in ids_param.split(',') if id_str.strip()]
-                queryset = queryset.filter(resume_id__in=id_list)
+                queryset = queryset.filter(resume_id__in=ids_param)
             except ValueError:
                 return Response(
                     {"error": "ids参数格式错误，必须是逗号分隔的整数"},
@@ -151,7 +149,9 @@ def batch_get_resume_data(request) -> Response:
 
         # 计算总数和分页
         total = queryset.count()
-        resumes = queryset.order_by('resume_id')[offset:offset + page_size]
+        resumes = queryset.order_by('resume_id')[offset:offset + page_size]\
+            if page > 0 and page_size > 0\
+            else queryset.order_by('resume_id')
 
         # 构建返回数据
         result = []
@@ -180,7 +180,7 @@ def batch_get_resume_data(request) -> Response:
                 "total": total,
                 "page": page,
                 "page_size": page_size,
-                "pages": (total + page_size - 1) // page_size
+                "pages": ((total + page_size - 1) // page_size) if page > 0 and page_size > 0 else -1
             },
             "data": result
         })

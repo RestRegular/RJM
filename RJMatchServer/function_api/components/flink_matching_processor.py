@@ -2,6 +2,7 @@
 # Created by RestRegular on 2025/7/18
 #
 import logging
+import pprint
 import sys
 import json
 import traceback
@@ -223,8 +224,9 @@ class JobMatcher(MapFunction):
             resume = json.loads(value)
             resume_id = resume.get("resume_id")
             if not resume_id:
+                print(f"计算岗位匹配度时出错: 数据格式错误，缺少 'resume_id' 字段\n"
+                      f"错误数据: {resume}")
                 return []
-
             matches: List[Tuple[int, int, float, Dict[str, Union[int, float]]]] = []
 
             for job_id, job_data in self.jobs.items():
