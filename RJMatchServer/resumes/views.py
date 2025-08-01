@@ -190,3 +190,113 @@ def batch_get_resume_data(request) -> Response:
             {"error": f"获取数据失败: {str(e)}"},
             status=status.HTTP_500_INTERNAL_SERVER_ERROR
         )
+
+
+@api_view(['GET'])
+@permission_classes([AllowAny])
+def multi_dimension_index_resumes(request) -> Response:
+    """
+    多维度索引简历接口
+    支持多条件组合筛选简历，基于多维度索引高效查询并返回按匹配度排序的结果
+
+    查询参数:
+        category: 求职岗位类别（如"技术开发"）
+        location: 所在地区（如"北京"）
+        skills: 技能列表（逗号分隔，如"python,java"）
+        experience_min: 最低工作年限（年）
+        experience_max: 最高工作年限（年）
+        education: 最高学历（如"本科"）
+        name: 姓名（模糊匹配）
+        limit: 最大返回数量（默认100）
+        page: 页码（默认1）
+        page_size: 每页数量（默认20，最大100）
+
+    返回:
+        按匹配度降序排列的简历列表，包含match_score字段及分页信息
+    """
+    try:
+        # 解析查询参数
+        params = request.query_params
+        category = params.get('category', '').strip()
+        location = params.get('location', '').strip()
+        education = params.get('education', '').strip()
+        name = params.get('name', '').strip()
+
+        # 处理技能列表（逗号分隔转列表）
+        skills_str = params.get('skills', '').strip()
+        skills = [s.strip() for s in skills_str.split(',')] if skills_str else None
+        # 过滤空字符串
+        if skills:
+            skills = [s for s in skills if s]
+            if not skills:
+                skills = None
+
+        # 处理数字类型参数
+        def parse_number(param_name):
+            val = params.get(param_name, '').strip()
+            return float(val) if val and val.replace('.', '', 1).isdigit() else None
+
+        experience_min = parse_number('experience_min')
+        experience_max = parse_number('experience_max')
+
+        # 处理分页参数
+        try:
+            page = int(params.get('page', 1))
+            page = max(page, 1)  # 确保页码不小于1
+        except ValueError:
+            page = 1
+
+        try:
+            page_size = int(params.get('page_size', 20))
+            page_size = max(1, min(page_size, 100))  # 限制每页数量在1-100之间
+        except ValueError:
+            page_size = 20
+
+        # 计算偏移量和限制
+        offset = (page - 1) * page_size
+        # 为了分页准确，查询时获取足够多的数据
+        limit = offset + page_size
+        # 限制最大查询数量，防止性能问题
+        limit = min(limit, 1000)
+
+        # 调用多维度搜索逻辑
+        resumes = RJ_MATCHER.search_resumes(
+            category=category if category else None,
+            location=location if location else None,
+            skills=skills,
+            experience_min=experience_min,
+            experience_max=experience_max,
+            education=education if education else None,
+            name=name if name else None,
+            limit=limit
+        )
+
+        # 计算总数量（用于分页信息）
+        total = len(resumes)
+
+        # 应用分页
+        paginated_resumes = resumes[offset:offset + page_size]
+
+        # 序列化结果（保留match_score字段）
+        serialized_resumes = ResumeSerializer(paginated_resumes, many=True).data
+        for i, resume in enumerate(serialized_resumes):
+            resume['match_score'] = paginated_resumes[i]['match_score']
+
+        # 计算总页数
+        total_pages = (total + page_size - 1) // page_size
+
+        return Response({
+            'count': total,
+            'page': page,
+            'page_size': page_size,
+            'total_pages': total_pages,
+            'has_next': page < total_pages,
+            'has_previous': page > 1,
+            'results': serialized_resumes
+        })
+
+    except Exception as e:
+        return Response(
+            {'error': f"多维度索引简历失败: {str(e)}"},
+            status=status.HTTP_500_INTERNAL_SERVER_ERROR
+        )

@@ -32,6 +32,15 @@ def upload_all_job_datas():
     RJ_MATCHER.upload_job_datas(jobs)
 
 
+def upload_all_resume_datas():
+    from resumes.models import Resume
+    from resumes.serializers import ResumeSerializer
+    resumes = Resume.objects.all()
+    serializer = ResumeSerializer(resumes, many=True)
+    resumes = serializer.data
+    RJ_MATCHER.upload_resume_datas_to_redis(resumes)
+
+
 def new_upload_resume_topic():
     global _upload_resume_topic_id
     _upload_resume_topic_id += 1
@@ -39,3 +48,4 @@ def new_upload_resume_topic():
 
 
 upload_all_job_datas()
+upload_all_resume_datas()

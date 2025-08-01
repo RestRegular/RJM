@@ -1,9 +1,11 @@
 #
 # Created by RestRegular on 2025/7/22
 #
+import re
 import json
-import threading
 import time
+import threading
+from datetime import datetime
 from typing import Dict, Any, List, Optional, Callable, Union
 from unittest.mock import Mock
 
@@ -126,6 +128,18 @@ class RJMatcher:
             print(f"批量上传职位数据失败: {e}")
             return False
 
+    def upload_resume_datas_to_redis(self, resumes: List[Dict[str, Any]]) -> bool:
+        try:
+            for resume in resumes:
+                self.upload_single_resume(resume)
+            return True
+        except KeyError as e:
+            print(f"数据验证错误: {e}")
+            return False
+        except Exception as e:
+            print(f"批量上传简历数据失败: {e}")
+            return False
+
     def upload_resume_datas(self, target_topic: str, resumes: List[Dict[str, Any]], empty_first: bool = False) -> bool:
         """
         批量上传简历数据至Kafka指定主题
@@ -170,6 +184,159 @@ class RJMatcher:
             return True
         except Exception as e:
             print(f"批量上传简历至Kafka失败: {e}")
+            return False
+
+    def upload_single_resume(self, resume: Dict[str, Any]) -> bool:
+        """
+        单条上传简历数据至Redis并建立索引（增量上传）
+
+        验证简历数据完整性后，将数据存储至Redis并构建多维度索引，
+        支持后续按岗位类别、地区、技能、工作经验等条件组合查询。
+
+        参数:
+            resume: 简历数据字典，需符合Resume模型结构，必需包含模型中的必填字段
+
+        返回:
+            bool: 上传成功返回True；失败返回False
+
+        存储逻辑:
+            1. 简历详情：Hash结构（键："resume:info:{resume_id}"）
+            2. 岗位类别索引：Set结构（键："resume:category:{category}"），存储同类别简历ID
+            3. 地区索引：Set结构（键："resume:address:{city}"），按城市分组
+            4. 技能索引：Set结构（键："resume:skill:{skill}"），存储具备该技能的简历ID
+            5. 工作经验索引：ZSet结构（键："resume:experience"），按总工作年限排序
+            6. 最高学历索引：Set结构（键："resume:education:{degree}"），按最高学历分组
+            7. 创建时间索引：ZSet结构（键："resume:created"），按创建时间戳排序
+
+        异常:
+            KeyError: 缺少必需字段
+            RedisConnectionError: Redis连接失败
+        """
+        # 必需字段校验（基于提供的Resume数据结构调整）
+        required_fields = [
+            'resume_id', 'category', 'title', 'email', 'name',
+            'education', 'work_experience', 'skill', 'address'
+        ]
+
+        try:
+            # 验证必需字段
+            for field in required_fields:
+                if field not in resume:
+                    raise KeyError(f"简历缺少必需字段: {field}（简历ID: {resume.get('resume_id', '未知')}）")
+
+            resume_id = resume["resume_id"]
+
+            # 数据格式预校验（根据提供的简历结构调整）
+            if not isinstance(resume["education"], list):
+                raise ValueError(f"education必须是列表类型（简历ID: {resume_id}）")
+            for edu in resume["education"]:
+                if not isinstance(edu, dict):
+                    raise ValueError(f"education列表元素必须是字典（简历ID: {resume_id}）")
+                # 根据提供的教育经历结构调整所需字段
+                required_edu_fields = ['school', 'level', 'time', 'major']
+                for ef in required_edu_fields:
+                    if ef not in edu:
+                        raise ValueError(f"教育经历缺少字段{ef}（简历ID: {resume_id}）")
+
+            # 1. 处理工作经验（计算总工作年限，根据提供的时间格式调整）
+            total_experience = 0.0
+            for exp in resume["work_experience"]:
+                if "time" in exp:
+                    # 处理"2020年10月 - 2024年至今"这种格式
+                    time_str = exp["time"]
+                    time_parts = time_str.split(' - ')
+
+                    if len(time_parts) != 2:
+                        continue  # 时间格式不正确，跳过此条经验
+
+                    start_str, end_str = time_parts
+
+                    # 解析开始日期
+                    try:
+                        # 处理"2020年10月"格式
+                        start_date = datetime.strptime(start_str, "%Y年%m月")
+                    except ValueError:
+                        try:
+                            # 处理"2020年10"格式
+                            start_date = datetime.strptime(start_str, "%Y年%m")
+                        except ValueError:
+                            continue  # 开始日期格式不正确，跳过此条经验
+
+                    # 解析结束日期
+                    if end_str == "至今":
+                        end_date = datetime.now()
+                    else:
+                        try:
+                            # 处理"2024年至今"格式
+                            if "至今" in end_str:
+                                end_date = datetime.now()
+                            else:
+                                # 处理"2020年8"格式
+                                end_date = datetime.strptime(end_str, "%Y年%m")
+                        except ValueError:
+                            try:
+                                # 处理"2020年8月"格式
+                                end_date = datetime.strptime(end_str, "%Y年%m月")
+                            except ValueError:
+                                continue  # 结束日期格式不正确，跳过此条经验
+
+                    # 计算工作年限
+                    exp_years = (end_date - start_date).days / 365.25
+                    total_experience += round(exp_years, 1)
+
+            # 2. 处理最高学历（从education字段提取，使用level字段）
+            degree_rank = {"博士": 5, "硕士": 4, "本科": 3, "专科": 2, "高中及以下": 1}
+            max_degree = "高中及以下"
+            for edu in resume["education"]:
+                current_degree = edu["level"]
+                if degree_rank.get(current_degree, 0) > degree_rank[max_degree]:
+                    max_degree = current_degree
+
+            # 3. 提取城市信息（增强正则表达式以处理更多地址格式）
+            city_match = re.search(r'([^省]+[市|区|县]|[^自治区]+自治区|[^直辖市]+直辖市)', resume["address"])
+            city = city_match.group(1) if city_match else "未知城市"
+
+            # 4. 存储简历详情（使用JSON序列化复杂字段）
+            hash_key = f"resume:info:{resume_id}"
+            resume_data = {}
+            for k, v in resume.items():
+                if isinstance(v, (list, dict)):
+                    # 对列表/字典进行JSON序列化
+                    resume_data[k] = json.dumps(v, ensure_ascii=False)
+                else:
+                    resume_data[k] = v  # 普通字段直接存储
+            self._db_manager.redis_hset(hash_key, resume_data)
+
+            # 5. 岗位类别索引
+            self._db_manager.redis_sadd(f"resume:category:{resume['category']}", resume_id)
+
+            # 6. 地区索引
+            self._db_manager.redis_sadd(f"resume:address:{city}", resume_id)
+
+            # 7. 技能索引
+            for skill in resume["skill"]:
+                normalized_skill = str(skill).strip().lower()
+                self._db_manager.redis_sadd(f"resume:skill:{normalized_skill}", resume_id)
+
+            # 8. 工作经验索引
+            self._db_manager.redis_zadd("resume:experience", {resume_id: total_experience})
+
+            # 9. 最高学历索引
+            self._db_manager.redis_sadd(f"resume:education:{max_degree}", resume_id)
+
+            # 10. 创建时间索引（处理ISO 8601格式）
+            if "created_at" in resume:
+                try:
+                    # 处理"2025-07-30T02:41:45.593148Z"这种格式
+                    created_ts = datetime.fromisoformat(resume["created_at"].replace('Z', '+00:00')).timestamp()
+                    self._db_manager.redis_zadd("resume:created", {resume_id: created_ts})
+                except ValueError as e:
+                    print(f"解析创建时间失败: {e}（简历ID: {resume_id}）")
+
+            return True
+
+        except Exception as e:
+            print(f"单条简历上传失败: {e}（简历ID: {resume.get('resume_id', '未知')}）")
             return False
 
     def upload_single_job(self, job: Dict[str, Any]) -> bool:
@@ -309,6 +476,14 @@ class RJMatcher:
             return self._db_manager.redis_hgetall(key)
         return None
 
+    def get_resume_by_id(self, resume_id):
+        resume_data = self._db_manager.redis_hgetall(f"resume:info:{resume_id}")
+        # 解析JSON字段
+        for field in ['education', 'work_experience', 'skill', 'project_experience']:
+            if field in resume_data:
+                resume_data[field] = json.loads(resume_data[field])
+        return resume_data
+
     def search_jobs(self,
                     category: Optional[str] = None,
                     location: Optional[str] = None,
@@ -417,6 +592,149 @@ class RJMatcher:
 
         except Exception as e:
             print(f"职位查询失败: {e}")
+            return []
+
+    def search_resumes(self,
+                       category: Optional[str] = None,
+                       location: Optional[str] = None,
+                       skills: Optional[List[str]] = None,
+                       experience_min: Optional[Union[int, float]] = None,
+                       experience_max: Optional[Union[int, float]] = None,
+                       education: Optional[str] = None,
+                       name: Optional[str] = None,
+                       limit: int = 100) -> List[Dict[str, Any]]:
+        """
+        多条件组合查询简历列表（基于Redis索引高效筛选）
+
+        按求职类别、地区、技能等条件筛选简历，计算匹配度并排序，支持结果限制。
+
+        参数:
+            category: 求职岗位类别；None表示不限制
+            location: 所在地区（城市）；None表示不限制
+            skills: 技能列表；None表示不限制（需匹配所有技能）
+            experience_min: 最低工作年限；None表示不限制
+            experience_max: 最高工作年限；None表示不限制
+            education: 最高学历；None表示不限制
+            name: 姓名（模糊匹配）；None表示不限制
+            limit: 最大返回数量（默认100）
+
+        返回:
+            按匹配度降序排列的简历列表（含match_score字段）
+        """
+        try:
+            # 1. 求职类别筛选
+            if category:
+                category_key = f"resume:category:{category}"
+                candidate_resume_ids = self._db_manager.redis_smembers(category_key)
+            else:
+                # 无类别筛选时，获取所有简历ID
+                resume_info_keys = self._db_manager.redis_keys("resume:info:*")
+                candidate_resume_ids = {key.split(":")[-1] for key in resume_info_keys}
+
+            if not candidate_resume_ids:
+                return []  # 无匹配候选，提前返回
+
+            # 2. 地区筛选（基于城市索引）
+            if location:
+                # 尝试提取城市名（与上传时的处理逻辑保持一致）
+                city_match = re.search(r'([^省]+市|[^自治区]+自治区|[^直辖市]+直辖市)', location)
+                city = city_match.group(1) if city_match else location
+
+                location_key = f"resume:address:{city}"
+                location_resume_ids = self._db_manager.redis_smembers(location_key)
+                candidate_resume_ids.intersection_update(location_resume_ids)
+
+            if not candidate_resume_ids:
+                return []
+
+            # 3. 技能筛选（需包含所有指定技能）
+            if skills:
+                for skill in skills:
+                    normalized_skill = skill.strip().lower()
+                    skill_key = f"resume:skill:{normalized_skill}"
+                    skill_resume_ids = self._db_manager.redis_smembers(skill_key)
+                    candidate_resume_ids.intersection_update(skill_resume_ids)
+                    if not candidate_resume_ids:
+                        return []
+
+            # 4. 工作经验筛选（ZSet范围查询）
+            if experience_min is not None or experience_max is not None:
+                min_exp = experience_min if experience_min is not None else 0
+                max_exp = experience_max if experience_max is not None else float('inf')
+                exp_resume_ids = self._db_manager.redis_zrangebyscore("resume:experience", min_exp, max_exp)
+                candidate_resume_ids.intersection_update(set(exp_resume_ids))
+
+            if not candidate_resume_ids:
+                return []
+
+            # 5. 学历筛选
+            if education:
+                education_key = f"resume:education:{education}"
+                edu_resume_ids = self._db_manager.redis_smembers(education_key)
+                candidate_resume_ids.intersection_update(edu_resume_ids)
+
+            if not candidate_resume_ids:
+                return []
+
+            # 6. 姓名模糊匹配（需最后处理，性能消耗较高）
+            if name:
+                filtered_ids = set()
+                name_lower = name.lower()
+                for resume_id in candidate_resume_ids:
+                    # 获取简历详情中的姓名信息
+                    resume_info = self.get_resume_by_id(resume_id)
+                    if resume_info and name_lower in resume_info.get('name', '').lower():
+                        filtered_ids.add(resume_id)
+                candidate_resume_ids = filtered_ids
+
+            if not candidate_resume_ids:
+                return []
+
+            # 7. 计算匹配度并排序
+            resume_list = []
+            for resume_id in candidate_resume_ids:
+                resume_info = self.get_resume_by_id(resume_id)
+                if not resume_info:
+                    continue
+
+                # 初始化匹配度为100分
+                match_score = 100.0
+
+                # 技能匹配度（占比40%）
+                if skills:
+                    resume_skills = [s.lower() for s in resume_info.get('skill', [])]
+                    matched_skills = set(resume_skills) & set([s.lower() for s in skills])
+                    skill_ratio = len(matched_skills) / len(skills) if skills else 1.0
+                    match_score *= (0.6 + skill_ratio * 0.4)  # 基础分60% + 技能匹配分40%
+
+                # 工作经验匹配度调整（占比20%）
+                if experience_min is not None and experience_max is not None:
+                    exp = float(resume_info.get('total_experience', 0))
+                    ideal_range = experience_max - experience_min
+                    if ideal_range > 0:
+                        # 越接近中间值得分越高
+                        mid_exp = (experience_min + experience_max) / 2
+                        exp_diff = abs(exp - mid_exp) / ideal_range
+                        exp_score = max(0, 1 - exp_diff)
+                        match_score *= (0.8 + exp_score * 0.2)  # 基础分80% + 经验匹配分20%
+
+                # 学历匹配加分（10分）
+                if education:
+                    resume_degree = resume_info.get('highest_education', '')
+                    if resume_degree == education:
+                        match_score += 10
+
+                # 标准化分数到0-100范围
+                match_score = min(100.0, max(0.0, match_score))
+                resume_info['match_score'] = round(match_score, 2)
+                resume_list.append(resume_info)
+
+            # 按匹配度降序排列，限制返回数量
+            resume_list.sort(key=lambda x: x['match_score'], reverse=True)
+            return resume_list[:limit]
+
+        except Exception as e:
+            print(f"简历查询失败: {e}")
             return []
 
     def add_match_job(self, job_id: str,
