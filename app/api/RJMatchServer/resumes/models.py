@@ -1,6 +1,5 @@
 from django.db import models
 
-# 复用原代码中的职位类别定义（保持一致性）
 job_categories = [
     "技术", "产品", "运营", "市场", "销售", "人力资源", "财务"
 ]
