@@ -3,14 +3,14 @@ from uuid import uuid4
 
 from typing import Optional, Tuple
 
-from tracardi.domain.task import Task
-from tracardi.exceptions.log_handler import get_logger
-from tracardi.service.storage.mysql.mapping.task_mapping import map_to_task_table, map_to_task
-from tracardi.service.storage.mysql.schema.table import TaskTable
-from tracardi.service.storage.mysql.utils.select_result import SelectResult
-from tracardi.service.storage.mysql.service.table_service import TableService
-from tracardi.service.storage.mysql.service.table_filtering import where_tenant_and_mode_context
-from tracardi.service.utils.date import now_in_utc
+from app.domain.task import Task
+from app.exceptions.log_handler import get_logger
+from app.service.storage.mysql.mapping.task_mapping import map_to_task_table, map_to_task
+from app.service.storage.mysql.schema.table import TaskTable
+from app.service.storage.mysql.utils.select_result import SelectResult
+from app.service.storage.mysql.service.table_service import TableService
+from app.service.storage.mysql.service.table_filtering import where_tenant_and_mode_context
+from app.service.utils.date import now_in_utc
 
 logger = get_logger(__name__)
 

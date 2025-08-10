@@ -1,8 +1,8 @@
-from tracardi.domain.named_entity import NamedEntity
-from tracardi.service.storage.mysql.schema.table import IdentificationPointTable
-from tracardi.domain.identification_point import IdentificationPoint, IdentificationField
-from tracardi.context import get_context
-from tracardi.service.storage.mysql.utils.serilizer import from_model, to_model
+from app.domain.named_entity import NamedEntity
+from app.service.storage.mysql.schema.table import IdentificationPointTable
+from app.domain.identification_point import IdentificationPoint, IdentificationField
+from app.context import get_context
+from app.service.storage.mysql.utils.serilizer import from_model, to_model
 
 
 def map_to_identification_point_table(identification_point: IdentificationPoint) -> IdentificationPointTable:

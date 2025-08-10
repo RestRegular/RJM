@@ -1,10 +1,10 @@
 from typing import Type, Callable, TypeVar
 
-from tracardi.context import get_context
+from app.context import get_context
 from sqlalchemy import and_
 from sqlalchemy.sql import func
 
-from tracardi.service.storage.mysql.schema.table import Base
+from app.service.storage.mysql.schema.table import Base
 
 T = TypeVar('T')
 

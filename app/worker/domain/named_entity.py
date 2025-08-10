@@ -1,4 +1,4 @@
-from .entity import Entity
+from app.worker.domain.entity import Entity
 
 
 class NamedEntity(Entity):

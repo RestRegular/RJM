@@ -1,9 +1,9 @@
 from typing import Optional
 
-from tracardi.context import get_context
-from tracardi.domain.import_config import ImportConfig
-from tracardi.service.storage.mysql.schema.table import ImportTable
-from tracardi.domain.named_entity import NamedEntity
+from app.context import get_context
+from app.domain.import_config import ImportConfig
+from app.service.storage.mysql.schema.table import ImportTable
+from app.domain.named_entity import NamedEntity
 
 def map_to_import_config_table(import_config: ImportConfig) -> ImportTable:
     context = get_context()

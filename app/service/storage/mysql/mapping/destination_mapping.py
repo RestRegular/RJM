@@ -1,10 +1,10 @@
-from tracardi.domain.entity import Entity
-from tracardi.domain.destination import Destination, DestinationConfig
-from tracardi.domain.named_entity import NamedEntity
-from tracardi.service.storage.mysql.mapping.utils import split_list
-from tracardi.service.storage.mysql.schema.table import DestinationTable
-from tracardi.service.storage.mysql.utils.serilizer import to_model, from_model
-from tracardi.context import get_context
+from app.domain.entity import Entity
+from app.domain.destination import Destination, DestinationConfig
+from app.domain.named_entity import NamedEntity
+from app.service.storage.mysql.mapping.utils import split_list
+from app.service.storage.mysql.schema.table import DestinationTable
+from app.service.storage.mysql.utils.serilizer import to_model, from_model
+from app.context import get_context
 
 def map_to_destination_table(destination: Destination) -> DestinationTable:
     context = get_context()

@@ -1,6 +1,6 @@
 import os
 
-from tracardi.service.utils.environment import get_env_as_int
+from app.service.utils.environment import get_env_as_int
 
 log_stack_trace_as = os.environ.get('LOG_STACK_TRACE_AS', 'string')
 log_stack_trace_for = os.environ.get('LOG_STACK_TRACE_AS', 'CRITICAL,ERROR').split(',')

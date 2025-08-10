@@ -1,12 +1,12 @@
 from typing import Optional, List
 
-from tracardi.domain.entity import Entity
-from tracardi.domain.entity_record import EntityRecord, EntityRecordMetadata, EntityRecordTime
-from tracardi.domain.remote_system_integration_id import RemoteSystemIntegrationId
-from tracardi.domain.storage_record import StorageRecords
-from tracardi.service.storage.elastic.interface import entity as entity_db
-from tracardi.service.storage.elastic.driver.factory import storage_manager
-from tracardi.service.utils.date import now_in_utc
+from app.domain.entity import Entity
+from app.domain.entity_record import EntityRecord, EntityRecordMetadata, EntityRecordTime
+from app.domain.remote_system_integration_id import RemoteSystemIntegrationId
+from app.domain.storage_record import StorageRecords
+from app.service.storage.elastic.interface import entity as entity_db
+from app.service.storage.elastic.driver.factory import storage_manager
+from app.service.utils.date import now_in_utc
 
 
 async def _load_by_values(field_value_pairs: List[tuple]) -> StorageRecords:

@@ -5,10 +5,10 @@ from typing import Optional, Any
 from uuid import uuid4
 
 
-from tracardi.version import version as system_version
-from tracardi.domain.user import User
-from tracardi.service.singleton import Singleton
-from tracardi.service.tracking.tracker_profiler import TrackerProfiler
+from app.version import version as system_version
+from app.domain.user import User
+from app.service.singleton import Singleton
+from app.service.tracking.tracker_profiler import TrackerProfiler
 from urllib.parse import parse_qs
 
 ctx_id: ContextVar[str] = ContextVar("request_id", default="")

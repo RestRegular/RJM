@@ -1,9 +1,9 @@
 from typing import Tuple, Optional, List
 
-from tracardi.domain.event_type_metadata import EventTypeMetadata
-from tracardi.service.storage.mysql.mapping.event_to_event_mapping import map_to_event_mapping
-from tracardi.service.storage.mysql.service.event_mapping_service import EventMappingService
-from tracardi.service.storage.mysql.utils.select_result import SelectResult
+from app.domain.event_type_metadata import EventTypeMetadata
+from app.service.storage.mysql.mapping.event_to_event_mapping import map_to_event_mapping
+from app.service.storage.mysql.service.event_mapping_service import EventMappingService
+from app.service.storage.mysql.utils.select_result import SelectResult
 
 ems = EventMappingService()
 

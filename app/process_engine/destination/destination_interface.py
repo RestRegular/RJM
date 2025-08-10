@@ -1,9 +1,9 @@
 from typing import Optional, List
 
-from tracardi.domain.destination import Destination
-from tracardi.domain.flat_event import FlatEvent
-from tracardi.domain.flat_profile import FlatProfile
-from tracardi.domain.resource import Resource
+from app.domain.destination import Destination
+from app.domain.flat_event import FlatEvent
+from app.domain.flat_profile import FlatProfile
+from app.domain.resource import Resource
 
 
 class DestinationInterface:

@@ -1,57 +1,57 @@
 import logging
 
-from tracardi.domain.setting import Setting
+from app.domain.setting import Setting
 
-from tracardi.context import Context, ServerContext
-from tracardi.domain.bridge import Bridge
-from tracardi.domain.consent_field_compliance import EventDataCompliance
-from tracardi.domain.consent_type import ConsentType
-from tracardi.domain.destination import Destination
-from tracardi.domain.event_redirect import EventRedirect
-from tracardi.domain.event_reshaping_schema import EventReshapingSchema
-from tracardi.domain.event_source import EventSource
-from tracardi.domain.event_to_profile import EventToProfile
-from tracardi.domain.event_type_metadata import EventTypeMetadata
-from tracardi.domain.event_validator import EventValidator
-from tracardi.domain.flow import FlowRecord
-from tracardi.domain.identification_point import IdentificationPoint
-from tracardi.domain.import_config import ImportConfig
-from tracardi.domain.report import Report
-from tracardi.domain.resource import Resource, ResourceRecord
-from tracardi.domain.rule import Rule
-from tracardi.domain.storage_record import StorageRecord
-from tracardi.domain.task import Task
-from tracardi.domain.user import User
-from tracardi.exceptions.log_handler import get_installation_logger
-from tracardi.service.storage.mysql.mapping.bridge_mapping import map_to_bridge_table
-from tracardi.service.storage.mysql.mapping.consent_type_mapping import map_to_consent_type_table
-from tracardi.service.storage.mysql.mapping.destination_mapping import map_to_destination_table
-from tracardi.service.storage.mysql.mapping.event_data_compliance_mapping import map_to_event_data_compliance_table
-from tracardi.service.storage.mysql.mapping.event_redirect_mapping import map_to_event_redirect_table
-from tracardi.service.storage.mysql.mapping.event_reshaping_mapping import map_to_event_reshaping_table
-from tracardi.service.storage.mysql.mapping.event_source_mapping import map_to_event_source_table
-from tracardi.service.storage.mysql.mapping.event_to_event_mapping import map_to_event_mapping_table
-from tracardi.service.storage.mysql.mapping.event_to_profile_mapping import map_to_event_to_profile_table
-from tracardi.service.storage.mysql.mapping.event_validation_mapping import map_to_event_validation_table
-from tracardi.service.storage.mysql.mapping.identification_point_mapping import map_to_identification_point
-from tracardi.service.storage.mysql.mapping.import_mapping import map_to_import_config_table
-from tracardi.service.storage.mysql.mapping.report_mapping import map_to_report_table
-from tracardi.service.storage.mysql.mapping.resource_mapping import map_to_resource_table
-from tracardi.service.storage.mysql.mapping.setting_mapping import map_to_settings_table
-from tracardi.service.storage.mysql.mapping.task_mapping import map_to_task_table
-from tracardi.service.storage.mysql.mapping.user_mapping import map_to_user_table
-from tracardi.service.storage.mysql.mapping.workflow_mapping import map_to_workflow_table
-from tracardi.service.storage.mysql.mapping.workflow_trigger_mapping import map_to_workflow_trigger_table
-from tracardi.service.storage.mysql.schema.table import BridgeTable, ConsentTypeTable, \
+from app.context import Context, ServerContext
+from app.domain.bridge import Bridge
+from app.domain.consent_field_compliance import EventDataCompliance
+from app.domain.consent_type import ConsentType
+from app.domain.destination import Destination
+from app.domain.event_redirect import EventRedirect
+from app.domain.event_reshaping_schema import EventReshapingSchema
+from app.domain.event_source import EventSource
+from app.domain.event_to_profile import EventToProfile
+from app.domain.event_type_metadata import EventTypeMetadata
+from app.domain.event_validator import EventValidator
+from app.domain.flow import FlowRecord
+from app.domain.identification_point import IdentificationPoint
+from app.domain.import_config import ImportConfig
+from app.domain.report import Report
+from app.domain.resource import Resource, ResourceRecord
+from app.domain.rule import Rule
+from app.domain.storage_record import StorageRecord
+from app.domain.task import Task
+from app.domain.user import User
+from app.exceptions.log_handler import get_installation_logger
+from app.service.storage.mysql.mapping.bridge_mapping import map_to_bridge_table
+from app.service.storage.mysql.mapping.consent_type_mapping import map_to_consent_type_table
+from app.service.storage.mysql.mapping.destination_mapping import map_to_destination_table
+from app.service.storage.mysql.mapping.event_data_compliance_mapping import map_to_event_data_compliance_table
+from app.service.storage.mysql.mapping.event_redirect_mapping import map_to_event_redirect_table
+from app.service.storage.mysql.mapping.event_reshaping_mapping import map_to_event_reshaping_table
+from app.service.storage.mysql.mapping.event_source_mapping import map_to_event_source_table
+from app.service.storage.mysql.mapping.event_to_event_mapping import map_to_event_mapping_table
+from app.service.storage.mysql.mapping.event_to_profile_mapping import map_to_event_to_profile_table
+from app.service.storage.mysql.mapping.event_validation_mapping import map_to_event_validation_table
+from app.service.storage.mysql.mapping.identification_point_mapping import map_to_identification_point
+from app.service.storage.mysql.mapping.import_mapping import map_to_import_config_table
+from app.service.storage.mysql.mapping.report_mapping import map_to_report_table
+from app.service.storage.mysql.mapping.resource_mapping import map_to_resource_table
+from app.service.storage.mysql.mapping.setting_mapping import map_to_settings_table
+from app.service.storage.mysql.mapping.task_mapping import map_to_task_table
+from app.service.storage.mysql.mapping.user_mapping import map_to_user_table
+from app.service.storage.mysql.mapping.workflow_mapping import map_to_workflow_table
+from app.service.storage.mysql.mapping.workflow_trigger_mapping import map_to_workflow_trigger_table
+from app.service.storage.mysql.schema.table import BridgeTable, ConsentTypeTable, \
     IdentificationPointTable, EventMappingTable, EventSourceTable, EventDataComplianceTable, EventReshapingTable, \
     TaskTable, UserTable, DestinationTable, EventRedirectTable, ReportTable, \
     EventToProfileMappingTable, WorkflowTriggerTable, ResourceTable, WorkflowTable, ImportTable, EventValidationTable, \
     SettingTable
-from tracardi.service.storage.mysql.service.table_service import TableService
-from tracardi.worker.domain.migration_schema import MigrationSchema
-from tracardi.worker.misc.base_64 import b64_decoder
-from tracardi.worker.misc.task_progress import task_create, task_progress, task_finish, task_status
-from tracardi.worker.service.worker.migration_workers.utils.client import ElasticClient
+from app.service.storage.mysql.service.table_service import TableService
+from app.worker.domain.migration_schema import MigrationSchema
+from app.worker.misc.base_64 import b64_decoder
+from app.worker.misc.task_progress import task_create, task_progress, task_finish, task_status
+from app.worker.service.worker.migration_workers.utils.client import ElasticClient
 
 logger = get_installation_logger(__name__, level=logging.INFO)
 

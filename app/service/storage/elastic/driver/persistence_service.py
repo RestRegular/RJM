@@ -2,25 +2,25 @@ import elasticsearch
 from lark import LarkError
 from pydantic import BaseModel
 
-import tracardi.service.storage.elastic.driver.elastic_storage as storage
+import app.service.storage.elastic.driver.elastic_storage as storage
 from typing import List, Union, Dict
 
-from tracardi.domain.entity import Entity
-from tracardi.domain.storage.index_mapping import IndexMapping
-from tracardi.domain.storage_aggregate_result import StorageAggregateResult
-from tracardi.domain.value_object.bulk_insert_result import BulkInsertResult
+from app.domain.entity import Entity
+from app.domain.storage.index_mapping import IndexMapping
+from app.domain.storage_aggregate_result import StorageAggregateResult
+from app.domain.value_object.bulk_insert_result import BulkInsertResult
 from datetime import datetime, timedelta
 from typing import Tuple, Optional
-from tracardi.domain.storage_record import StorageRecords, StorageRecord
-from tracardi.exceptions.log_handler import get_logger
-from tracardi.service.list_default_value import list_value_at_index
-from tracardi.service.singleton import Singleton
-from tracardi.domain.query_result import QueryResult
-from tracardi.domain.time_range_query import DatetimeRangePayload
-from tracardi.exceptions.exception import StorageException
-from tracardi.process_engine.tql.parser import Parser
-from tracardi.process_engine.tql.transformer.filter_transformer import FilterTransformer
-from tracardi.service.storage.elastic.driver.elastic_storage import ElasticStorage
+from app.domain.storage_record import StorageRecords, StorageRecord
+from app.exceptions.log_handler import get_logger
+from app.service.list_default_value import list_value_at_index
+from app.service.singleton import Singleton
+from app.domain.query_result import QueryResult
+from app.domain.time_range_query import DatetimeRangePayload
+from app.exceptions.exception import StorageException
+from app.process_engine.tql.parser import Parser
+from app.process_engine.tql.transformer.filter_transformer import FilterTransformer
+from app.service.storage.elastic.driver.elastic_storage import ElasticStorage
 
 _logger = get_logger(__name__)
 

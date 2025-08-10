@@ -1,10 +1,10 @@
-from tracardi.context import Context, ServerContext
-from tracardi.exceptions.log_handler import get_logger
-from tracardi.worker.domain.migration_schema import MigrationSchema
-from tracardi.worker.misc.task_progress import task_create, task_status, task_finish, task_progress
+from app.context import Context, ServerContext
+from app.exceptions.log_handler import get_logger
+from app.worker.domain.migration_schema import MigrationSchema
+from app.worker.misc.task_progress import task_create, task_status, task_finish, task_progress
 from time import sleep
-from tracardi.worker.service.worker.migration_workers.utils.migration_error import MigrationError
-from tracardi.worker.service.worker.migration_workers.utils.client import ElasticClient
+from app.worker.service.worker.migration_workers.utils.migration_error import MigrationError
+from app.worker.service.worker.migration_workers.utils.client import ElasticClient
 
 logger = get_logger(__name__)
 

@@ -5,12 +5,12 @@ from typing import List, Optional, Union, AsyncGenerator, Any, Dict
 import elasticsearch
 from pydantic import BaseModel
 
-from tracardi.domain.entity import Entity, FlatEntity
-from tracardi.domain.storage_record import StorageRecords, StorageRecord
-from tracardi.domain.value_object.bulk_insert_result import BulkInsertResult
-from tracardi.exceptions.exception import DuplicatedRecordException
-from tracardi.service.storage.elastic.driver.elastic_client import ElasticClient
-from tracardi.service.storage.index import Index, Resource
+from app.domain.entity import Entity, FlatEntity
+from app.domain.storage_record import StorageRecords, StorageRecord
+from app.domain.value_object.bulk_insert_result import BulkInsertResult
+from app.exceptions.exception import DuplicatedRecordException
+from app.service.storage.elastic.driver.elastic_client import ElasticClient
+from app.service.storage.index import Index, Resource
 
 
 class ElasticFiledSort:

@@ -1,8 +1,8 @@
 from typing import Optional
 
-from tracardi.service.storage.elastic.interface.collector.load.flat_profile import load_flat_profile
-from tracardi.context import Context
-from tracardi.domain.profile import Profile
+from app.service.storage.elastic.interface.collector.load.flat_profile import load_flat_profile
+from app.context import Context
+from app.domain.profile import Profile
 
 
 async def load_profile(profile_id: str, context: Optional[Context] = None, fallback_to_db: bool = True) -> Optional[

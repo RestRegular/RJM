@@ -1,8 +1,8 @@
-from tracardi.context import get_context
-from tracardi.domain.event_redirect import EventRedirect
-from tracardi.domain.named_entity import NamedEntity
-from tracardi.service.storage.mysql.mapping.utils import split_list
-from tracardi.service.storage.mysql.schema.table import EventRedirectTable
+from app.context import get_context
+from app.domain.event_redirect import EventRedirect
+from app.domain.named_entity import NamedEntity
+from app.service.storage.mysql.mapping.utils import split_list
+from app.service.storage.mysql.schema.table import EventRedirectTable
 
 def map_to_event_redirect_table(event_redirect: EventRedirect) -> EventRedirectTable:
     context = get_context()

@@ -1,9 +1,9 @@
 from typing import List, Optional, Tuple
 
-from tracardi.domain.entity_record import EntityRecord
-from tracardi.domain.storage_aggregate_result import StorageAggregateResult
-from tracardi.domain.value_object.bulk_insert_result import BulkInsertResult
-from tracardi.service.storage.elastic.driver.factory import storage_manager
+from app.domain.entity_record import EntityRecord
+from app.domain.storage_aggregate_result import StorageAggregateResult
+from app.domain.value_object.bulk_insert_result import BulkInsertResult
+from app.service.storage.elastic.driver.factory import storage_manager
 
 
 async def load(entity_id) -> Optional[EntityRecord]:

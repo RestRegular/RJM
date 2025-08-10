@@ -1,9 +1,9 @@
 from typing import List, Tuple, Optional, Dict
 
-from tracardi.domain.event_source import EventSource
-from tracardi.domain.named_entity import NamedEntity
-from tracardi.service.storage.mysql.mapping.event_source_mapping import map_to_event_source
-from tracardi.service.storage.mysql.service.event_source_service import EventSourceService
+from app.domain.event_source import EventSource
+from app.domain.named_entity import NamedEntity
+from app.service.storage.mysql.mapping.event_source_mapping import map_to_event_source
+from app.service.storage.mysql.service.event_source_service import EventSourceService
 
 ess = EventSourceService()
 

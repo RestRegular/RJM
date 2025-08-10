@@ -1,11 +1,11 @@
 from collections import defaultdict
 
 from typing import List, Dict, TypeVar, Union, Set
-from tracardi.context import Context, ServerContext, get_context
-from tracardi.domain.session import Session
-from tracardi.domain.value_object.bulk_insert_result import BulkInsertResult
-from tracardi.service.storage.driver.elastic import session as session_db
-from tracardi.service.tracking.cache.session_cache import save_session_cache
+from app.context import Context, ServerContext, get_context
+from app.domain.session import Session
+from app.domain.value_object.bulk_insert_result import BulkInsertResult
+from app.service.storage.driver.elastic import session as session_db
+from app.service.tracking.cache.session_cache import save_session_cache
 
 T = TypeVar("T")
 

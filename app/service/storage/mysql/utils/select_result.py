@@ -1,7 +1,7 @@
 from typing import Callable, Optional, List, Generator, TypeVar
 
-from tracardi.domain.named_entity import NamedEntity
-from tracardi.service.storage.mysql.schema.table import Base
+from app.domain.named_entity import NamedEntity
+from app.service.storage.mysql.schema.table import Base
 
 T = TypeVar('T')
 

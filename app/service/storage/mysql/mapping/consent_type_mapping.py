@@ -1,7 +1,7 @@
-from tracardi.context import get_context
-from tracardi.domain.consent_type import ConsentType
-from tracardi.service.storage.mysql.mapping.utils import split_list
-from tracardi.service.storage.mysql.schema.table import ConsentTypeTable
+from app.context import get_context
+from app.domain.consent_type import ConsentType
+from app.service.storage.mysql.mapping.utils import split_list
+from app.service.storage.mysql.schema.table import ConsentTypeTable
 
 def map_to_consent_type_table(consent_type: ConsentType) -> ConsentTypeTable:
     context = get_context()

@@ -1,8 +1,8 @@
 from sqlalchemy import text
 
-from tracardi.config import mysql
-from tracardi.service.storage.mysql.engine import AsyncMySqlEngine
-from tracardi.service.storage.mysql.schema.table import Base
+from app.config import mysql
+from app.service.storage.mysql.engine import AsyncMySqlEngine
+from app.service.storage.mysql.schema.table import Base
 
 
 class DatabaseService:

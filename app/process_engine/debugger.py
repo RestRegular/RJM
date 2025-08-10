@@ -1,6 +1,6 @@
 from collections import defaultdict
 
-from tracardi.service.wf.domain.debug_info import DebugInfo
+from app.service.wf.domain.debug_info import DebugInfo
 
 
 class Debugger:

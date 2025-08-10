@@ -1,17 +1,17 @@
 from typing import List, Optional, Tuple, Dict, Set
 
-from tracardi.domain.entity import Entity
-from tracardi.domain.event import Event
-from tracardi.domain.flat_event import FlatEvent
-from tracardi.domain.rule import Rule
-from tracardi.exceptions.log_handler import get_logger
-from tracardi.service.cache.trigger import load_trigger_rule
-from tracardi.service.storage.mysql.mapping.workflow_trigger_mapping import map_to_workflow_trigger_table, \
+from app.domain.entity import Entity
+from app.domain.event import Event
+from app.domain.flat_event import FlatEvent
+from app.domain.rule import Rule
+from app.exceptions.log_handler import get_logger
+from app.service.cache.trigger import load_trigger_rule
+from app.service.storage.mysql.mapping.workflow_trigger_mapping import map_to_workflow_trigger_table, \
     map_to_workflow_trigger_rule
-from tracardi.service.storage.mysql.schema.table import WorkflowTriggerTable
-from tracardi.service.storage.mysql.utils.select_result import SelectResult
-from tracardi.service.storage.mysql.service.table_service import TableService
-from tracardi.service.storage.mysql.service.table_filtering import where_tenant_and_mode_context
+from app.service.storage.mysql.schema.table import WorkflowTriggerTable
+from app.service.storage.mysql.utils.select_result import SelectResult
+from app.service.storage.mysql.service.table_service import TableService
+from app.service.storage.mysql.service.table_filtering import where_tenant_and_mode_context
 
 logger = get_logger(__name__)
 

@@ -1,9 +1,9 @@
 from typing import Optional
 
-from tracardi.service.tracking.cache.flat_profile_cache import save_flat_profile_cache, load_flat_profile_cache
-from tracardi.context import Context, get_context
-from tracardi.domain.flat_profile import FlatProfile
-from tracardi.service.storage.elastic.interface import profile as profile_db
+from app.service.tracking.cache.flat_profile_cache import save_flat_profile_cache, load_flat_profile_cache
+from app.context import Context, get_context
+from app.domain.flat_profile import FlatProfile
+from app.service.storage.elastic.interface import profile as profile_db
 
 
 async def load_flat_profile(profile_id: str, context: Optional[Context] = None, fallback_to_db: bool = True) -> \

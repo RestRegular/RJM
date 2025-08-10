@@ -1,9 +1,9 @@
-from tracardi.domain.named_entity import NamedEntity
-from tracardi.service.storage.mysql.mapping.utils import split_list
-from tracardi.service.storage.mysql.schema.table import EventToProfileMappingTable
-from tracardi.domain.event_to_profile import EventToProfile, EventToProfileMap
-from tracardi.context import get_context
-from tracardi.service.storage.mysql.utils.serilizer import to_model, from_model
+from app.domain.named_entity import NamedEntity
+from app.service.storage.mysql.mapping.utils import split_list
+from app.service.storage.mysql.schema.table import EventToProfileMappingTable
+from app.domain.event_to_profile import EventToProfile, EventToProfileMap
+from app.context import get_context
+from app.service.storage.mysql.utils.serilizer import to_model, from_model
 
 
 def map_to_event_to_profile_table(event_to_profile: EventToProfile) -> EventToProfileMappingTable:

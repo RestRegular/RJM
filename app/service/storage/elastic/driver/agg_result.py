@@ -1,4 +1,4 @@
-from tracardi.domain.storage_record import StorageRecords
+from app.domain.storage_record import StorageRecords
 
 
 class AggResult:

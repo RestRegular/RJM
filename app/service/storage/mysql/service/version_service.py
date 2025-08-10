@@ -1,12 +1,12 @@
 from typing import Optional
 
-from tracardi.domain.version import Version
-from tracardi.exceptions.log_handler import get_logger
-from tracardi.service.storage.mysql.mapping.version_mapping import map_to_version_table, map_to_version
-from tracardi.service.storage.mysql.schema.table import VersionTable
-from tracardi.service.storage.mysql.service.table_service import TableService
-from tracardi.service.storage.mysql.service.user_service import _where_with_context
-from tracardi.service.storage.mysql.utils.select_result import SelectResult
+from app.domain.version import Version
+from app.exceptions.log_handler import get_logger
+from app.service.storage.mysql.mapping.version_mapping import map_to_version_table, map_to_version
+from app.service.storage.mysql.schema.table import VersionTable
+from app.service.storage.mysql.service.table_service import TableService
+from app.service.storage.mysql.service.user_service import _where_with_context
+from app.service.storage.mysql.utils.select_result import SelectResult
 
 logger = get_logger(__name__)
 

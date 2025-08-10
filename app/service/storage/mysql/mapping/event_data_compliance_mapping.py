@@ -1,8 +1,8 @@
-from tracardi.context import get_context
-from tracardi.domain.consent_field_compliance import EventDataCompliance, ConsentFieldComplianceSetting
-from tracardi.domain.named_entity import NamedEntity
-from tracardi.service.storage.mysql.schema.table import EventDataComplianceTable
-from tracardi.service.storage.mysql.utils.serilizer import to_model, from_model
+from app.context import get_context
+from app.domain.consent_field_compliance import EventDataCompliance, ConsentFieldComplianceSetting
+from app.domain.named_entity import NamedEntity
+from app.service.storage.mysql.schema.table import EventDataComplianceTable
+from app.service.storage.mysql.utils.serilizer import to_model, from_model
 
 
 def map_to_event_data_compliance_table(event_data_compliance: EventDataCompliance) -> EventDataComplianceTable:

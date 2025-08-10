@@ -2,21 +2,21 @@ from typing import Optional, Type, Callable, Tuple, TypeVar
 
 from sqlalchemy.dialects.mysql import insert
 
-from tracardi.exceptions.log_handler import get_logger
-from tracardi.service.license import License, LICENSE
-from tracardi.service.singleton import Singleton
-from tracardi.service.storage.mysql.engine import AsyncMySqlEngine
+from app.exceptions.log_handler import get_logger
+from app.service.license import License, LICENSE
+from app.service.singleton import Singleton
+from app.service.storage.mysql.engine import AsyncMySqlEngine
 from sqlalchemy import inspect, update, Column
 
-from tracardi.service.storage.mysql.schema.table import Base
-from tracardi.service.storage.mysql.service.table_filtering import where_with_context, where_tenant_and_mode_context
+from app.service.storage.mysql.schema.table import Base
+from app.service.storage.mysql.service.table_filtering import where_with_context, where_tenant_and_mode_context
 from sqlalchemy.sql import text
 
 if License.has_service(LICENSE):
     from com_tracardi.service.mysql.query_service import MysqlQuery, MysqlQueryInDeploymentMode
 else:
-    from tracardi.service.storage.mysql.query_service import MysqlQuery, MysqlQueryInDeploymentMode
-from tracardi.service.storage.mysql.utils.select_result import SelectResult
+    from app.service.storage.mysql.query_service import MysqlQuery, MysqlQueryInDeploymentMode
+from app.service.storage.mysql.utils.select_result import SelectResult
 
 T = TypeVar('T')
 logger = get_logger(__name__)

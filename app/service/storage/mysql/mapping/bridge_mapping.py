@@ -1,8 +1,8 @@
-from tracardi.context import get_context
-from tracardi.domain.bridge import Bridge
-from tracardi.service.plugin.domain.register import Form
-from tracardi.service.storage.mysql.schema.table import BridgeTable
-from tracardi.service.storage.mysql.utils.serilizer import to_model, from_model
+from app.context import get_context
+from app.domain.bridge import Bridge
+from app.service.plugin.domain.register import Form
+from app.service.storage.mysql.schema.table import BridgeTable
+from app.service.storage.mysql.utils.serilizer import to_model, from_model
 
 
 def map_to_bridge_table(bridge: Bridge) -> BridgeTable:

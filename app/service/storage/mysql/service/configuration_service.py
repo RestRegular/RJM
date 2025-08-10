@@ -1,9 +1,9 @@
-from tracardi.domain.configuration import Configuration
-from tracardi.service.storage.mysql.mapping.configuration_mapping import map_to_configuration_table
-from tracardi.service.storage.mysql.schema.table import ConfigurationTable
-from tracardi.service.storage.mysql.service.table_service import TableService
-from tracardi.service.storage.mysql.service.table_filtering import where_with_context
-from tracardi.service.storage.mysql.utils.select_result import SelectResult
+from app.domain.configuration import Configuration
+from app.service.storage.mysql.mapping.configuration_mapping import map_to_configuration_table
+from app.service.storage.mysql.schema.table import ConfigurationTable
+from app.service.storage.mysql.service.table_service import TableService
+from app.service.storage.mysql.service.table_filtering import where_with_context
+from app.service.storage.mysql.utils.select_result import SelectResult
 
 
 # --------------------------------------------------------

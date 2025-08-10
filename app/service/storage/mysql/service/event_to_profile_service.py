@@ -1,11 +1,11 @@
 from typing import Optional, Tuple
-from tracardi.domain.event_to_profile import EventToProfile
-from tracardi.service.storage.mysql.mapping.event_to_profile_mapping import map_to_event_to_profile_table, \
+from app.domain.event_to_profile import EventToProfile
+from app.service.storage.mysql.mapping.event_to_profile_mapping import map_to_event_to_profile_table, \
     map_to_event_to_profile
-from tracardi.service.storage.mysql.schema.table import EventToProfileMappingTable
-from tracardi.service.storage.mysql.service.table_service import TableService
-from tracardi.service.storage.mysql.service.table_filtering import where_tenant_and_mode_context
-from tracardi.service.storage.mysql.utils.select_result import SelectResult
+from app.service.storage.mysql.schema.table import EventToProfileMappingTable
+from app.service.storage.mysql.service.table_service import TableService
+from app.service.storage.mysql.service.table_filtering import where_tenant_and_mode_context
+from app.service.storage.mysql.utils.select_result import SelectResult
 
 
 class EventToProfileMappingService(TableService):

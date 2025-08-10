@@ -1,14 +1,14 @@
 from typing import List, Optional, Tuple
 from elasticsearch import NotFoundError
-from tracardi.domain.storage_record import StorageRecords
-from tracardi.domain.value_object.bulk_insert_result import BulkInsertResult
-from tracardi.service.cache.field_mapping import load_fields
-from tracardi.service.wf.field_mappings_cache import FieldMapper
-from tracardi.service.storage.elastic.driver.elastic_client import ElasticClient
-from tracardi.service.storage.elastic.driver.elastic_storage import ElasticFiledSort
-from tracardi.service.storage.elastic.driver.factory import storage_manager
-from tracardi.service.storage.index import Resource
-from tracardi.service.storage.elastic.driver.persistence_service import PersistenceService
+from app.domain.storage_record import StorageRecords
+from app.domain.value_object.bulk_insert_result import BulkInsertResult
+from app.service.cache.field_mapping import load_fields
+from app.service.wf.field_mappings_cache import FieldMapper
+from app.service.storage.elastic.driver.elastic_client import ElasticClient
+from app.service.storage.elastic.driver.elastic_storage import ElasticFiledSort
+from app.service.storage.elastic.driver.factory import storage_manager
+from app.service.storage.index import Resource
+from app.service.storage.elastic.driver.persistence_service import PersistenceService
 
 
 def index(idx) -> PersistenceService:

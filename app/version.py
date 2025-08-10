@@ -1,6 +1,6 @@
 import os
-from tracardi.domain.version import Version
-from tracardi.service.utils.environment import get_env_as_bool
+from app.domain.version import Version
+from app.service.utils.environment import get_env_as_bool
 
 VERSION = os.environ.get('_DEBUG_VERSION', '1.1.x')
 TENANT_NAME = os.environ.get('TENANT_NAME', None)

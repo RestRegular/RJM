@@ -4,11 +4,11 @@ from datetime import datetime
 from time import sleep
 import logging
 
-from tracardi.context import Context
-from tracardi.worker.domain.migration_schema import MigrationSchema
-from tracardi.worker.misc.task_progress import task_create, task_status
-from tracardi.worker.service.worker.migration_workers.utils.migration_error import MigrationError
-from tracardi.worker.service.worker.migration_workers.utils.client import ElasticClient
+from app.context import Context
+from app.worker.domain.migration_schema import MigrationSchema
+from app.worker.misc.task_progress import task_create, task_status
+from app.worker.service.worker.migration_workers.utils.migration_error import MigrationError
+from app.worker.service.worker.migration_workers.utils.client import ElasticClient
 
 
 def _get_partitioning_suffix(partitioning) -> str:

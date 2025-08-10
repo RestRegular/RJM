@@ -1,12 +1,12 @@
 from typing import Optional, List, Tuple
-from tracardi.domain.user_payload import UserPayload
-from tracardi.domain.user import User
-from tracardi.service.storage.mysql.mapping.user_mapping import map_to_user_table, map_to_user
-from tracardi.service.storage.mysql.schema.table import UserTable
-from tracardi.service.storage.mysql.service.table_service import TableService
-from tracardi.service.storage.mysql.service.table_filtering import sql_functions, \
+from app.domain.user_payload import UserPayload
+from app.domain.user import User
+from app.service.storage.mysql.mapping.user_mapping import map_to_user_table, map_to_user
+from app.service.storage.mysql.schema.table import UserTable
+from app.service.storage.mysql.service.table_service import TableService
+from app.service.storage.mysql.service.table_filtering import sql_functions, \
     where_with_context
-from tracardi.service.storage.mysql.utils.select_result import SelectResult
+from app.service.storage.mysql.utils.select_result import SelectResult
 
 
 # --------------------------------------------------------

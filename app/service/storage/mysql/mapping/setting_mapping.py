@@ -1,6 +1,6 @@
-from tracardi.context import get_context
-from tracardi.service.storage.mysql.schema.table import SettingTable
-from tracardi.domain.setting import Setting
+from app.context import get_context
+from app.service.storage.mysql.schema.table import SettingTable
+from app.domain.setting import Setting
 
 
 def map_to_settings_table(setting: Setting) -> SettingTable:

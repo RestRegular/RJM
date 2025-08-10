@@ -1,6 +1,6 @@
-from tracardi.context import get_context
-from tracardi.service.storage.mysql.schema.table import Base
-from tracardi.service.storage.mysql.utils.select_result import SelectResult
+from app.context import get_context
+from app.service.storage.mysql.schema.table import Base
+from app.service.storage.mysql.utils.select_result import SelectResult
 
 from typing import Type, Any, Callable, Optional, Tuple
 

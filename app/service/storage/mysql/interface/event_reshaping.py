@@ -1,9 +1,9 @@
 from typing import Optional, Tuple, List
 
-from tracardi.domain.event_reshaping_schema import EventReshapingSchema
-from tracardi.service.storage.mysql.mapping.event_reshaping_mapping import map_to_event_reshaping
-from tracardi.service.storage.mysql.service.event_reshaping_service import EventReshapingService
-from tracardi.service.storage.mysql.utils.select_result import SelectResult
+from app.domain.event_reshaping_schema import EventReshapingSchema
+from app.service.storage.mysql.mapping.event_reshaping_mapping import map_to_event_reshaping
+from app.service.storage.mysql.service.event_reshaping_service import EventReshapingService
+from app.service.storage.mysql.utils.select_result import SelectResult
 
 ers = EventReshapingService()
 

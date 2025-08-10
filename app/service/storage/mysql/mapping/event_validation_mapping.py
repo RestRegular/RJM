@@ -1,8 +1,8 @@
-from tracardi.context import get_context
-from tracardi.domain.event_validator import EventValidator, ValidationSchema
-from tracardi.service.storage.mysql.mapping.utils import split_list
-from tracardi.service.storage.mysql.schema.table import EventValidationTable
-from tracardi.service.storage.mysql.utils.serilizer import to_model, from_model
+from app.context import get_context
+from app.domain.event_validator import EventValidator, ValidationSchema
+from app.service.storage.mysql.mapping.utils import split_list
+from app.service.storage.mysql.schema.table import EventValidationTable
+from app.service.storage.mysql.utils.serilizer import to_model, from_model
 
 
 def map_to_event_validation_table(event_validator: EventValidator) -> EventValidationTable:

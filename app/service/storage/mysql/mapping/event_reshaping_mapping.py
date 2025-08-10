@@ -1,9 +1,9 @@
-from tracardi.context import get_context
-from tracardi.domain.event_reshaping_schema import EventReshapingSchema, ReshapeSchema
-from tracardi.domain.named_entity import NamedEntity
-from tracardi.service.storage.mysql.mapping.utils import split_list
-from tracardi.service.storage.mysql.schema.table import EventReshapingTable
-from tracardi.service.storage.mysql.utils.serilizer import to_model, from_model
+from app.context import get_context
+from app.domain.event_reshaping_schema import EventReshapingSchema, ReshapeSchema
+from app.domain.named_entity import NamedEntity
+from app.service.storage.mysql.mapping.utils import split_list
+from app.service.storage.mysql.schema.table import EventReshapingTable
+from app.service.storage.mysql.utils.serilizer import to_model, from_model
 
 
 def map_to_event_reshaping_table(event_reshaping: EventReshapingSchema) -> EventReshapingTable:

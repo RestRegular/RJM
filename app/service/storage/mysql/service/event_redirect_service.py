@@ -1,10 +1,10 @@
 from typing import Tuple, Optional
-from tracardi.domain.event_redirect import EventRedirect
-from tracardi.service.storage.mysql.mapping.event_redirect_mapping import map_to_event_redirect_table, \
+from app.domain.event_redirect import EventRedirect
+from app.service.storage.mysql.mapping.event_redirect_mapping import map_to_event_redirect_table, \
     map_to_event_redirect
-from tracardi.service.storage.mysql.schema.table import EventRedirectTable
-from tracardi.service.storage.mysql.service.table_service import TableService
-from tracardi.service.storage.mysql.utils.select_result import SelectResult
+from app.service.storage.mysql.schema.table import EventRedirectTable
+from app.service.storage.mysql.service.table_service import TableService
+from app.service.storage.mysql.utils.select_result import SelectResult
 
 
 class EventRedirectService(TableService):

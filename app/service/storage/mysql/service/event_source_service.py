@@ -1,10 +1,10 @@
 from typing import Tuple, Optional
-from tracardi.domain.event_source import EventSource
-from tracardi.service.storage.mysql.mapping.event_source_mapping import map_to_event_source_table, map_to_event_source
-from tracardi.service.storage.mysql.schema.table import EventSourceTable
-from tracardi.service.storage.mysql.service.table_service import TableService
-from tracardi.service.storage.mysql.service.table_filtering import where_tenant_and_mode_context
-from tracardi.service.storage.mysql.utils.select_result import SelectResult
+from app.domain.event_source import EventSource
+from app.service.storage.mysql.mapping.event_source_mapping import map_to_event_source_table, map_to_event_source
+from app.service.storage.mysql.schema.table import EventSourceTable
+from app.service.storage.mysql.service.table_service import TableService
+from app.service.storage.mysql.service.table_filtering import where_tenant_and_mode_context
+from app.service.storage.mysql.utils.select_result import SelectResult
 
 
 class EventSourceService(TableService):

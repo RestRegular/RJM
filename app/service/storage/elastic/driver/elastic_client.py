@@ -8,11 +8,11 @@ from ssl import create_default_context
 
 from elasticsearch.helpers.errors import BulkIndexError
 
-from tracardi.config import ElasticConfig, elastic
-from tracardi import config
-from tracardi.domain import ExtraInfo
-from tracardi.domain.value_object.bulk_insert_result import BulkInsertResult
-from tracardi.exceptions.log_handler import get_logger
+from app.config import ElasticConfig, elastic
+from app import config
+from app.domain import ExtraInfo
+from app.domain.value_object.bulk_insert_result import BulkInsertResult
+from app.exceptions.log_handler import get_logger
 
 _singleton = None
 logger = logging.getLogger('elasticsearch')

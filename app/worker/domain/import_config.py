@@ -2,7 +2,7 @@ from typing import Optional
 
 from pydantic import field_validator, BaseModel
 
-from tracardi.worker.domain.named_entity import NamedEntity
+from app.worker.domain.named_entity import NamedEntity
 
 
 class ImportConfig(BaseModel):

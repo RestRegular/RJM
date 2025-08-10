@@ -1,7 +1,7 @@
-from tracardi.context import get_context
-from tracardi.domain.event_type_metadata import EventTypeMetadata
-from tracardi.service.storage.mysql.mapping.utils import split_list
-from tracardi.service.storage.mysql.schema.table import EventMappingTable
+from app.context import get_context
+from app.domain.event_type_metadata import EventTypeMetadata
+from app.service.storage.mysql.mapping.utils import split_list
+from app.service.storage.mysql.schema.table import EventMappingTable
 
 
 def map_to_event_mapping_table(event_type_metadata: EventTypeMetadata) -> EventMappingTable:

@@ -1,15 +1,15 @@
 import uuid
 from typing import Optional, List, Set, Dict
-from .entity import PrimaryEntity, Entity, FlatEntity
-from .profile import Profile
-from .profile_data import FLAT_PROFILE_MAPPING, PREFIX_IDENTIFIER_ID, PREFIX_IDENTIFIER_PK
-from .storage_record import RecordMetadata, StorageRecord
-from ..config import tracardi
-from ..service.tracking.profile_pii_hashing import get_allowed_piis_to_be_hashed_as_ids
-from ..service.utils.date import now_in_utc
+from app.domain.entity import PrimaryEntity, Entity, FlatEntity
+from app.domain.profile import Profile
+from app.domain.profile_data import FLAT_PROFILE_MAPPING, PREFIX_IDENTIFIER_ID, PREFIX_IDENTIFIER_PK
+from app.domain.storage_record import RecordMetadata, StorageRecord
+from app.config import tracardi
+from app.service.tracking.profile_pii_hashing import get_allowed_piis_to_be_hashed_as_ids
+from app.service.utils.date import now_in_utc
 from app.domain.profile_data import PREFIX_EMAIL_BUSINESS, PREFIX_EMAIL_MAIN, PREFIX_EMAIL_PRIVATE, \
     PREFIX_PHONE_MAIN, PREFIX_PHONE_BUSINESS, PREFIX_PHONE_MOBILE, PREFIX_PHONE_WHATSUP
-from ..service.utils.hasher import hash_id, has_hash_id
+from app.service.utils.hasher import hash_id, has_hash_id
 from app.service.storage.index import Resource
 
 

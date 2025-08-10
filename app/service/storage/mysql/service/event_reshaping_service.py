@@ -1,11 +1,11 @@
 from typing import Optional, Tuple
-from tracardi.domain.event_reshaping_schema import EventReshapingSchema
-from tracardi.service.storage.mysql.mapping.event_reshaping_mapping import map_to_event_reshaping_table, \
+from app.domain.event_reshaping_schema import EventReshapingSchema
+from app.service.storage.mysql.mapping.event_reshaping_mapping import map_to_event_reshaping_table, \
     map_to_event_reshaping
-from tracardi.service.storage.mysql.schema.table import EventReshapingTable
-from tracardi.service.storage.mysql.service.table_service import TableService
-from tracardi.service.storage.mysql.service.table_filtering import where_tenant_and_mode_context
-from tracardi.service.storage.mysql.utils.select_result import SelectResult
+from app.service.storage.mysql.schema.table import EventReshapingTable
+from app.service.storage.mysql.service.table_service import TableService
+from app.service.storage.mysql.service.table_filtering import where_tenant_and_mode_context
+from app.service.storage.mysql.utils.select_result import SelectResult
 
 
 

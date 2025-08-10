@@ -1,8 +1,8 @@
-from tracardi.context import get_context
-from tracardi.domain.flow import FlowRecord
-from tracardi.domain.flow_meta_data import FlowMetaData
-from tracardi.service.storage.mysql.mapping.utils import split_list
-from tracardi.service.storage.mysql.schema.table import WorkflowTable
+from app.context import get_context
+from app.domain.flow import FlowRecord
+from app.domain.flow_meta_data import FlowMetaData
+from app.service.storage.mysql.mapping.utils import split_list
+from app.service.storage.mysql.schema.table import WorkflowTable
 
 
 def map_to_workflow_table(flow_record: FlowRecord) -> WorkflowTable:

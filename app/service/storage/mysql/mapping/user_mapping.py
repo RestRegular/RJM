@@ -1,7 +1,7 @@
-from tracardi.context import get_context
-from tracardi.domain.user import User
-from tracardi.service.storage.mysql.mapping.utils import split_list
-from tracardi.service.storage.mysql.schema.table import UserTable
+from app.context import get_context
+from app.domain.user import User
+from app.service.storage.mysql.mapping.utils import split_list
+from app.service.storage.mysql.schema.table import UserTable
 
 
 def map_to_user_table(user: User) -> UserTable:

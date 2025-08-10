@@ -1,11 +1,11 @@
 from typing import Optional
 from uuid import uuid4
 
-from tracardi.domain.task import Task
-from tracardi.exceptions.log_handler import get_logger
-from tracardi.service.storage.mysql.mapping.task_mapping import map_to_task
-from tracardi.service.storage.mysql.service.task_service import BackgroundTaskService
-from tracardi.service.utils.date import now_in_utc
+from app.domain.task import Task
+from app.exceptions.log_handler import get_logger
+from app.service.storage.mysql.mapping.task_mapping import map_to_task
+from app.service.storage.mysql.service.task_service import BackgroundTaskService
+from app.service.utils.date import now_in_utc
 
 
 logger = get_logger(__name__)

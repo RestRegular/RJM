@@ -1,10 +1,10 @@
 from typing import List, Optional
 
-from tracardi.service.domain import resource as resource_db
-from .destination_interface import DestinationInterface
-from ..action.v1.connectors.mautic.client import MauticClient, MauticClientAuthException
-from tracardi.domain.flat_profile import FlatProfile
-from ...domain.flat_event import FlatEvent
+from app.service.domain import resource as resource_db
+from app.process_engine.destination.destination_interface import DestinationInterface
+from app.process_engine.action.v1.connectors.mautic.client import MauticClient, MauticClientAuthException
+from app.domain.flat_profile import FlatProfile
+from app.domain.flat_event import FlatEvent
 
 
 class MauticConnector(DestinationInterface):

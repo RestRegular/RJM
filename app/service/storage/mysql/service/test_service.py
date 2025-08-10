@@ -1,9 +1,9 @@
-from tracardi.domain.test import Test
-from tracardi.service.storage.mysql.mapping.test_mapping import map_to_test_table
-from tracardi.service.storage.mysql.schema.table import TestTable
-from tracardi.service.storage.mysql.service.table_service import TableService
-from tracardi.service.storage.mysql.service.table_filtering import where_with_context
-from tracardi.service.storage.mysql.utils.select_result import SelectResult
+from app.domain.test import Test
+from app.service.storage.mysql.mapping.test_mapping import map_to_test_table
+from app.service.storage.mysql.schema.table import TestTable
+from app.service.storage.mysql.service.table_service import TableService
+from app.service.storage.mysql.service.table_filtering import where_with_context
+from app.service.storage.mysql.utils.select_result import SelectResult
 
 
 # --------------------------------------------------------

@@ -4,8 +4,8 @@ from sqlalchemy.exc import SQLAlchemyError
 from sqlalchemy.ext.asyncio import create_async_engine, AsyncSession
 from sqlalchemy.orm import sessionmaker
 
-from tracardi.config import mysql
-from tracardi.exceptions.log_handler import get_logger
+from app.config import mysql
+from app.exceptions.log_handler import get_logger
 
 from sqlalchemy.sql import text
 

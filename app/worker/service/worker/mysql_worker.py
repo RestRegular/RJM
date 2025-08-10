@@ -4,7 +4,7 @@ from datetime import datetime
 import mysql.connector
 from pydantic import BaseModel
 
-from tracardi.worker.domain.named_entity import NamedEntity
+from app.worker.domain.named_entity import NamedEntity
 
 
 class MysqlConnectionConfig(BaseModel):

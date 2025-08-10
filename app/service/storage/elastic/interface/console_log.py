@@ -1,6 +1,6 @@
 from typing import List, Dict, Tuple
 
-from tracardi.service.storage.elastic.driver.factory import storage_manager
+from app.service.storage.elastic.driver.factory import storage_manager
 
 
 async def load_by_flow(flow_id: str, sort: List[Dict[str, Dict]] = None, limit=30) -> Tuple[List[dict], int]:

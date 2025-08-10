@@ -1,10 +1,10 @@
 from typing import Tuple, List, Optional
 
-from tracardi.domain.resource import Resource
-from tracardi.service.license import License
-from tracardi.service.storage.mysql.map_to_named_entity import map_to_named_entity
-from tracardi.service.storage.mysql.mapping.resource_mapping import map_to_resource
-from tracardi.service.storage.mysql.service.resource_service import ResourceService
+from app.domain.resource import Resource
+from app.service.license import License
+from app.service.storage.mysql.map_to_named_entity import map_to_named_entity
+from app.service.storage.mysql.mapping.resource_mapping import map_to_resource
+from app.service.storage.mysql.service.resource_service import ResourceService
 
 rs = ResourceService()
 

@@ -2,10 +2,10 @@ from dataclasses import dataclass
 
 import asyncio
 
-from tracardi.context import Context
+from app.context import Context
 
-from tracardi.worker.domain.migration_schema import MigrationSchema
-from tracardi.worker.service.worker.migration_workers import copy_to_mysql
+from app.worker.domain.migration_schema import MigrationSchema
+from app.worker.service.worker.migration_workers import copy_to_mysql
 
 @dataclass
 class Request:

@@ -1,8 +1,8 @@
-from tracardi.service.storage.mysql.mapping.utils import split_list
-from tracardi.service.storage.mysql.schema.table import EventSourceTable
-from tracardi.domain.event_source import EventSource
-from tracardi.context import get_context
-from tracardi.domain.named_entity import NamedEntity
+from app.service.storage.mysql.mapping.utils import split_list
+from app.service.storage.mysql.schema.table import EventSourceTable
+from app.domain.event_source import EventSource
+from app.context import get_context
+from app.domain.named_entity import NamedEntity
 
 from datetime import datetime
 

@@ -1,6 +1,6 @@
 from typing import List
 
-from tracardi.service.storage.driver.elastic import event as event_db
+from app.service.storage.driver.elastic import event as event_db
 
 
 class EventContextFetcher:

@@ -1,6 +1,6 @@
-from tracardi.context import get_context
-from tracardi.domain.task import Task
-from tracardi.service.storage.mysql.schema.table import TaskTable
+from app.context import get_context
+from app.domain.task import Task
+from app.service.storage.mysql.schema.table import TaskTable
 
 
 def map_to_task_table(task: Task) -> TaskTable:

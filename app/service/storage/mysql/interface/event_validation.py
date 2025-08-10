@@ -1,8 +1,8 @@
 from typing import Optional, Tuple, List
 
-from tracardi.domain.event_validator import EventValidator
-from tracardi.service.storage.mysql.mapping.event_validation_mapping import map_to_event_validation
-from tracardi.service.storage.mysql.service.event_validation_service import EventValidationService
+from app.domain.event_validator import EventValidator
+from app.service.storage.mysql.mapping.event_validation_mapping import map_to_event_validation
+from app.service.storage.mysql.service.event_validation_service import EventValidationService
 
 evs = EventValidationService()
 

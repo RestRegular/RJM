@@ -1,7 +1,7 @@
-from tracardi.context import get_context
-from tracardi.service.storage.mysql.schema.table import TracardiProTable
-from tracardi.service.storage.mysql.service.table_service import TableService
-from tracardi.service.storage.mysql.utils.select_result import SelectResult
+from app.context import get_context
+from app.service.storage.mysql.schema.table import TracardiProTable
+from app.service.storage.mysql.service.table_service import TableService
+from app.service.storage.mysql.utils.select_result import SelectResult
 
 
 class TracardiProService(TableService):

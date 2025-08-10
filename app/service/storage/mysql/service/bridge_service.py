@@ -1,12 +1,12 @@
 from typing import List
 
-from tracardi.context import get_context
-from tracardi.domain.bridge import Bridge
-from tracardi.exceptions.log_handler import get_logger
-from tracardi.service.storage.mysql.mapping.bridge_mapping import map_to_bridge_table
-from tracardi.service.storage.mysql.schema.table import BridgeTable
-from tracardi.service.storage.mysql.service.table_service import TableService
-from tracardi.service.storage.mysql.utils.select_result import SelectResult
+from app.context import get_context
+from app.domain.bridge import Bridge
+from app.exceptions.log_handler import get_logger
+from app.service.storage.mysql.mapping.bridge_mapping import map_to_bridge_table
+from app.service.storage.mysql.schema.table import BridgeTable
+from app.service.storage.mysql.service.table_service import TableService
+from app.service.storage.mysql.utils.select_result import SelectResult
 
 logger = get_logger(__name__)
 

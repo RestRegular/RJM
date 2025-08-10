@@ -1,14 +1,14 @@
 import elasticsearch
 from typing import Union, List, Optional
-from tracardi.service.storage.elastic.driver.elastic_storage import ElasticStorage, ElasticFiledSort
-from tracardi.service.storage.elastic.driver.persistence_service import PersistenceService
-from tracardi.domain.entity import Entity
+from app.service.storage.elastic.driver.elastic_storage import ElasticStorage, ElasticFiledSort
+from app.service.storage.elastic.driver.persistence_service import PersistenceService
+from app.domain.entity import Entity
 from pydantic import BaseModel
-from tracardi.service.storage.elastic.driver.agg_result import AggResult
-from tracardi.exceptions.exception import TracardiException, StorageException
-from tracardi.domain.storage_record import StorageRecords
-from tracardi.domain.value_object.bulk_insert_result import BulkInsertResult
-import tracardi.domain.entity as domain
+from app.service.storage.elastic.driver.agg_result import AggResult
+from app.exceptions.exception import TracardiException, StorageException
+from app.domain.storage_record import StorageRecords
+from app.domain.value_object.bulk_insert_result import BulkInsertResult
+import app.domain.entity as domain
 
 
 class BaseStorageCrud:

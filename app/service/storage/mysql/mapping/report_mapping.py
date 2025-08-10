@@ -1,7 +1,7 @@
-from tracardi.service.storage.mysql.mapping.utils import split_list
-from tracardi.service.storage.mysql.schema.table import ReportTable
-from tracardi.domain.report import Report
-from tracardi.context import get_context
+from app.service.storage.mysql.mapping.utils import split_list
+from app.service.storage.mysql.schema.table import ReportTable
+from app.domain.report import Report
+from app.context import get_context
 
 def map_to_report_table(report: Report) -> ReportTable:
     context = get_context()

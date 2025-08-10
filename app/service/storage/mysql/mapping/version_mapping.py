@@ -1,6 +1,6 @@
-from tracardi.context import get_context
-from tracardi.domain.version import Version
-from tracardi.service.storage.mysql.schema.table import VersionTable
+from app.context import get_context
+from app.domain.version import Version
+from app.service.storage.mysql.schema.table import VersionTable
 
 
 def map_to_version_table(version: Version) -> VersionTable:

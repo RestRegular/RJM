@@ -1,11 +1,11 @@
 from typing import Union, List, Set, Optional
 
-from tracardi.context import Context, get_context
-from tracardi.domain.flat_profile import FlatProfile
-from tracardi.domain.profile import Profile
-from tracardi.service.storage.driver.elastic import profile as profile_db
-from tracardi.service.storage.elastic.driver.factory import storage_manager
-from tracardi.service.tracking.cache.flat_profile_cache import save_flat_profile_cache, delete_flat_profile_cache
+from app.context import Context, get_context
+from app.domain.flat_profile import FlatProfile
+from app.domain.profile import Profile
+from app.service.storage.driver.elastic import profile as profile_db
+from app.service.storage.elastic.driver.factory import storage_manager
+from app.service.tracking.cache.flat_profile_cache import save_flat_profile_cache, delete_flat_profile_cache
 
 
 async def save_profiles_in_db(profiles: Union[FlatProfile, Profile, List[FlatProfile], List[Profile], Set[Profile]],

@@ -1,10 +1,10 @@
 from typing import Tuple, Optional
-from tracardi.domain.consent_type import ConsentType
-from tracardi.service.storage.mysql.mapping.consent_type_mapping import map_to_consent_type_table, map_to_consent_type
-from tracardi.service.storage.mysql.schema.table import ConsentTypeTable
-from tracardi.service.storage.mysql.service.table_service import TableService
-from tracardi.service.storage.mysql.service.table_filtering import where_tenant_and_mode_context
-from tracardi.service.storage.mysql.utils.select_result import SelectResult
+from app.domain.consent_type import ConsentType
+from app.service.storage.mysql.mapping.consent_type_mapping import map_to_consent_type_table, map_to_consent_type
+from app.service.storage.mysql.schema.table import ConsentTypeTable
+from app.service.storage.mysql.service.table_service import TableService
+from app.service.storage.mysql.service.table_filtering import where_tenant_and_mode_context
+from app.service.storage.mysql.utils.select_result import SelectResult
 
 
 class ConsentTypeService(TableService):

@@ -1,6 +1,6 @@
-from tracardi.domain.value_object.bulk_insert_result import BulkInsertResult
+from app.domain.value_object.bulk_insert_result import BulkInsertResult
 # from tracardi.service.storage.elastic_client import ElasticClient
-from tracardi.service.storage.elastic.driver.factory import storage_manager
+from app.service.storage.elastic.driver.factory import storage_manager
 # from tracardi.service.storage.index import Resource
 
 

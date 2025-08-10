@@ -1,4 +1,4 @@
-from tracardi.service.storage.driver.elastic import session as session_db
+from app.service.storage.driver.elastic import session as session_db
 
 
 async def load_session_from_db(session_id: str):

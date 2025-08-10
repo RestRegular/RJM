@@ -1,12 +1,12 @@
 from datetime import datetime
 
-from tracardi.context import get_context
-from tracardi.domain.resource import Resource, ResourceCredentials
-from tracardi.service.secrets import encrypt
-from tracardi.service.storage.mysql.mapping.utils import split_list
-from tracardi.service.storage.mysql.schema.table import ResourceTable
-from tracardi.service.secrets import decrypt
-from tracardi.domain.destination import DestinationConfig
+from app.context import get_context
+from app.domain.resource import Resource, ResourceCredentials
+from app.service.secrets import encrypt
+from app.service.storage.mysql.mapping.utils import split_list
+from app.service.storage.mysql.schema.table import ResourceTable
+from app.service.secrets import decrypt
+from app.domain.destination import DestinationConfig
 
 def map_to_resource_table(resource: Resource) -> ResourceTable:
     context = get_context()

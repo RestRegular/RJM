@@ -1,11 +1,11 @@
 from typing import Optional, Tuple
-from tracardi.domain.consent_field_compliance import EventDataCompliance
-from tracardi.service.storage.mysql.mapping.event_data_compliance_mapping import map_to_event_data_compliance_table, \
+from app.domain.consent_field_compliance import EventDataCompliance
+from app.service.storage.mysql.mapping.event_data_compliance_mapping import map_to_event_data_compliance_table, \
     map_to_event_data_compliance
-from tracardi.service.storage.mysql.schema.table import EventDataComplianceTable
-from tracardi.service.storage.mysql.utils.select_result import SelectResult
-from tracardi.service.storage.mysql.service.table_service import TableService
-from tracardi.service.storage.mysql.service.table_filtering import where_tenant_and_mode_context
+from app.service.storage.mysql.schema.table import EventDataComplianceTable
+from app.service.storage.mysql.utils.select_result import SelectResult
+from app.service.storage.mysql.service.table_service import TableService
+from app.service.storage.mysql.service.table_filtering import where_tenant_and_mode_context
 
 
 class ConsentDataComplianceService(TableService):

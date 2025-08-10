@@ -1,10 +1,10 @@
 from typing import Optional, Tuple
-from tracardi.domain.resource import Resource
-from tracardi.service.storage.mysql.mapping.resource_mapping import map_to_resource_table, map_to_resource
-from tracardi.service.storage.mysql.schema.table import ResourceTable
-from tracardi.service.storage.mysql.utils.select_result import SelectResult
-from tracardi.service.storage.mysql.service.table_service import TableService
-from tracardi.service.storage.mysql.service.table_filtering import where_tenant_and_mode_context, sql_functions
+from app.domain.resource import Resource
+from app.service.storage.mysql.mapping.resource_mapping import map_to_resource_table, map_to_resource
+from app.service.storage.mysql.schema.table import ResourceTable
+from app.service.storage.mysql.utils.select_result import SelectResult
+from app.service.storage.mysql.service.table_service import TableService
+from app.service.storage.mysql.service.table_filtering import where_tenant_and_mode_context, sql_functions
 
 
 class ResourceService(TableService):

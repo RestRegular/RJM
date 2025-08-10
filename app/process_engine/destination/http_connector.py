@@ -9,12 +9,12 @@ from typing import Optional, List
 from aiohttp import ClientConnectorError, BasicAuth, ContentTypeError
 from pydantic import BaseModel
 
-from tracardi.domain.flat_profile import FlatProfile
-from tracardi.exceptions.log_handler import get_logger
-from tracardi.process_engine.tql.utils.dictonary import flatten
-from tracardi.process_engine.action.v1.connectors.api_call.model.configuration import Method
-from .destination_interface import DestinationInterface
-from ...domain.flat_event import FlatEvent
+from app.domain.flat_profile import FlatProfile
+from app.exceptions.log_handler import get_logger
+from app.process_engine.tql.utils.dictonary import flatten
+from app.process_engine.action.v1.connectors.api_call.model.configuration import Method
+from app.process_engine.destination.destination_interface import DestinationInterface
+from app.domain.flat_event import FlatEvent
 
 logger = get_logger(__name__)
 

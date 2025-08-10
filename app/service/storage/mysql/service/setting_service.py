@@ -3,13 +3,13 @@ from typing import Optional, Tuple
 
 from sqlalchemy import Integer, func
 
-from tracardi.domain.setting import Setting
-from tracardi.exceptions.log_handler import get_logger
-from tracardi.service.storage.mysql.mapping.setting_mapping import map_to_settings_table, map_to_setting
-from tracardi.service.storage.mysql.schema.table import SettingTable
-from tracardi.service.storage.mysql.utils.select_result import SelectResult
-from tracardi.service.storage.mysql.service.table_service import TableService
-from tracardi.service.storage.mysql.service.table_filtering import where_tenant_and_mode_context
+from app.domain.setting import Setting
+from app.exceptions.log_handler import get_logger
+from app.service.storage.mysql.mapping.setting_mapping import map_to_settings_table, map_to_setting
+from app.service.storage.mysql.schema.table import SettingTable
+from app.service.storage.mysql.utils.select_result import SelectResult
+from app.service.storage.mysql.service.table_service import TableService
+from app.service.storage.mysql.service.table_filtering import where_tenant_and_mode_context
 
 logger = get_logger(__name__)
 

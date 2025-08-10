@@ -1,10 +1,10 @@
 from typing import Optional, Tuple
 
-from tracardi.domain.report import Report
-from tracardi.service.storage.mysql.mapping.report_mapping import map_to_report_table, map_to_report
-from tracardi.service.storage.mysql.schema.table import ReportTable
-from tracardi.service.storage.mysql.utils.select_result import SelectResult
-from tracardi.service.storage.mysql.service.table_service import TableService
+from app.domain.report import Report
+from app.service.storage.mysql.mapping.report_mapping import map_to_report_table, map_to_report
+from app.service.storage.mysql.schema.table import ReportTable
+from app.service.storage.mysql.utils.select_result import SelectResult
+from app.service.storage.mysql.service.table_service import TableService
 
 
 class ReportService(TableService):

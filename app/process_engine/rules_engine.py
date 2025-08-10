@@ -3,30 +3,29 @@ from asyncio import Task
 from collections import defaultdict
 from time import time
 from typing import List, Tuple, Optional, Dict
-from tracardi.service.license import License
 
-from tracardi.domain.event import Event
-
-from tracardi.service.wf.domain.debug_info import DebugInfo
-from tracardi.service.wf.domain.error_debug_info import ErrorDebugInfo
-from tracardi.service.wf.domain.debug_info import FlowDebugInfo
-from tracardi.service.wf.domain.flow_history import FlowHistory
-from tracardi.service.wf.domain.work_flow import WorkFlow
-from .debugger import Debugger
-from ..domain import ExtraInfo
-from tracardi.service.wf.domain.entity import Entity as WfEntity
-from ..domain.flow import Flow
-from tracardi.service.wf.domain.flow_invoke_result import FlowInvokeResult
-from ..domain.payload.tracker_payload import TrackerPayload
-from ..domain.profile import Profile
-from ..domain.rule_invoke_result import RuleInvokeResult
-from ..domain.session import Session
-from ..domain.rule import Rule
-from ..exceptions.exception_service import get_traceback
-from ..exceptions.log_handler import get_logger
-from ..service.storage.mysql.mapping.workflow_mapping import map_to_workflow_record
-from ..service.storage.mysql.service.workflow_service import WorkflowService
-from ..service.utils.getters import get_entity_id
+from app.service.license import License
+from app.domain.event import Event
+from app.service.wf.domain.debug_info import DebugInfo
+from app.service.wf.domain.error_debug_info import ErrorDebugInfo
+from app.service.wf.domain.debug_info import FlowDebugInfo
+from app.service.wf.domain.flow_history import FlowHistory
+from app.service.wf.domain.work_flow import WorkFlow
+from app.process_engine.debugger import Debugger
+from app.domain import ExtraInfo
+from app.service.wf.domain.entity import Entity as WfEntity
+from app.domain.flow import Flow
+from app.service.wf.domain.flow_invoke_result import FlowInvokeResult
+from app.domain.payload.tracker_payload import TrackerPayload
+from app.domain.profile import Profile
+from app.domain.rule_invoke_result import RuleInvokeResult
+from app.domain.session import Session
+from app.domain.rule import Rule
+from app.exceptions.exception_service import get_traceback
+from app.exceptions.log_handler import get_logger
+from app.service.storage.mysql.mapping.workflow_mapping import map_to_workflow_record
+from app.service.storage.mysql.service.workflow_service import WorkflowService
+from app.service.utils.getters import get_entity_id
 
 logger = get_logger(__name__)
 

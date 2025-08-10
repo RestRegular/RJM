@@ -1,9 +1,9 @@
-from tracardi.context import get_context
-from tracardi.domain.flow_action_plugin import FlowActionPlugin
-from tracardi.domain.metadata import Metadata as TimeMetadata
-from tracardi.domain.settings import Settings
-from tracardi.domain.time import Time
-from tracardi.service.plugin.domain.register import (
+from app.context import get_context
+from app.domain.flow_action_plugin import FlowActionPlugin
+from app.domain.metadata import Metadata as TimeMetadata
+from app.domain.settings import Settings
+from app.domain.time import Time
+from app.service.plugin.domain.register import (
     Plugin,
     MetaData,
     Spec,
@@ -11,9 +11,9 @@ from tracardi.service.plugin.domain.register import (
     Form,
     RunOnce,
     NodeEvents, Documentation)
-from tracardi.service.storage.mysql.mapping.utils import split_list
-from tracardi.service.storage.mysql.schema.table import PluginTable
-from tracardi.service.storage.mysql.utils.serilizer import to_model, from_model
+from app.service.storage.mysql.mapping.utils import split_list
+from app.service.storage.mysql.schema.table import PluginTable
+from app.service.storage.mysql.utils.serilizer import to_model, from_model
 
 
 def map_to_plugin_table(plugin: FlowActionPlugin) -> PluginTable:

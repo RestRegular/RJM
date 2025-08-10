@@ -1,13 +1,13 @@
 from typing import List, Optional
 
-from .destination_interface import DestinationInterface
-from ..action.v1.connectors.hubspot.client import HubSpotClient, HubSpotClientException
-from ...domain.destination import Destination
-from tracardi.domain.flat_profile import FlatProfile
-from ...domain.flat_event import FlatEvent
-from ...domain.resource import Resource
-from ...exceptions.log_handler import get_logger
-from tracardi.service.storage.elastic.interface.integration_id import load_integration_id, save_integration_id
+from app.process_engine.destination.destination_interface import DestinationInterface
+from app.process_engine.action.v1.connectors.hubspot.client import HubSpotClient, HubSpotClientException
+from app.domain.destination import Destination
+from app.domain.flat_profile import FlatProfile
+from app.domain.flat_event import FlatEvent
+from app.domain.resource import Resource
+from app.exceptions.log_handler import get_logger
+from app.service.storage.elastic.interface.integration_id import load_integration_id, save_integration_id
 
 logger = get_logger(__name__)
 

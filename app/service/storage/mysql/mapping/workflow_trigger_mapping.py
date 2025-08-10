@@ -1,10 +1,10 @@
-from tracardi.context import get_context
-from tracardi.domain.metadata import Metadata
-from tracardi.domain.named_entity import NamedEntity
-from tracardi.domain.rule import Rule
-from tracardi.domain.time import Time
-from tracardi.service.storage.mysql.mapping.utils import split_list
-from tracardi.service.storage.mysql.schema.table import WorkflowTriggerTable
+from app.context import get_context
+from app.domain.metadata import Metadata
+from app.domain.named_entity import NamedEntity
+from app.domain.rule import Rule
+from app.domain.time import Time
+from app.service.storage.mysql.mapping.utils import split_list
+from app.service.storage.mysql.schema.table import WorkflowTriggerTable
 
 
 def map_to_workflow_trigger_table(workflow_trigger: Rule) -> WorkflowTriggerTable:
