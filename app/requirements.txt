@@ -1,0 +1,3 @@
+# pydantic
+pydantic~=2.3.0
+dotty-dict~=1.3.1
