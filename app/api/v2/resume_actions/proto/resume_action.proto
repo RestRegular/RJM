@@ -1,0 +1,34 @@
+syntax = "proto3";
+
+package resume.action.v2;
+
+// 申请访问简历请求
+message ApplyAccessRequest {
+  string applicant_uid = 1;  // 申请者用户ID
+  string target_uid = 2;     // 目标用户ID
+  string resume_id = 3;      // 简历ID
+  string purpose = 4;        // 访问目的
+}
+
+// 权限检查请求
+message PermissionCheck {
+  string actor_uid = 1;      // 操作者ID
+  string action = 2;         // 操作类型
+  string resource_id = 3;    // 资源ID
+}
+
+// 通用响应
+message ActionResponse {
+  bool success = 1;
+  string message = 2;
+  int32 error_code = 3;
+}
+
+// 简历服务定义
+service ResumeActionService {
+  // 接口1: 申请访问简历
+  rpc ApplyResumeAccess(ApplyAccessRequest) returns (ActionResponse);
+
+  // 通用权限检查接口
+  rpc CheckPermission(PermissionCheck) returns (ActionResponse);
+}
