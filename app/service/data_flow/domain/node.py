@@ -4,7 +4,7 @@ from pydantic import BaseModel
 
 from app.service.data_flow.domain.inst import Inst
 from app.service.data_flow.domain.port_to_port_edges import PortToPortEdges
-from app.service.plugin.domain.register import NodeEvents
+from app.service.plugin.domain.register import NodeEvents, RunOnce
 from app.service.plugin.runner import ActionRunner
 
 
@@ -23,7 +23,7 @@ class Node(Inst):
     module: str
     init: Optional[dict] = {}
     skip: bool = False
-    # TODO: run_once
+    run_once: Optional[RunOnce] = RunOnce()
     node_events: Optional[NodeEvents] = None
     block_flow: bool = False
     on_error_continue: bool = False
