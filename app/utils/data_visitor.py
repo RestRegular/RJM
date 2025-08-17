@@ -129,6 +129,15 @@ class DataVisitor:
         self.storage: Dotty = DataVisitor._convert(data)
 
     @staticmethod
+    def new(**data: Any):
+        """创建一个新的数据访问器实例
+
+        :param data: 支持多种数据类型，自动转换为Dotty字典
+        :return: 新的数据访问器实例
+        """
+        return DataVisitor(data)
+
+    @staticmethod
     def _convert(data: Union[dict, Dotty, BaseModel, BaseData, Any]) -> Dotty:
         """将各种数据类型转换为Dotty字典
 

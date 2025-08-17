@@ -1,6 +1,6 @@
 import os
 
-from app.utils.logging.formater import CustomFormatter, JSONFormatter, ConsoleFormatter
+from app.utils.log_system.formater import CustomFormatter, JSONFormatter, ConsoleFormatter
 
 
 def log_format_adapter():

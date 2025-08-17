@@ -4,7 +4,7 @@ from pydantic import BaseModel
 
 from app.domain import CONST_EVENT_STATUS_COLLECTED
 from app.domain.inst import Inst
-from app.domain.time import EventTime, Time
+from app.utils.time import EventTime, Time
 
 
 class EventProcessors(BaseModel):

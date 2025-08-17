@@ -5,14 +5,14 @@ from app.domain.event import Event
 from app.domain.session import Session
 
 from app.utils.console import Log
-from app.utils.logging.logger import get_logger
+from app.utils.log_system.logger import get_logger
 from app.service.data_flow.domain.debug_info import DebugInfo
 from app.service.data_flow.domain.flow_graph import FlowGraph
 
 logger = get_logger(__name__)
 
 
-class FlowInvokerResult:
+class FlowInvokeResult:
     def __init__(self, debug_info: DebugInfo, log_list: List[Log], flow: FlowGraph, event: Event,
                  session: Optional[Session] = None):
         self.debug_info = debug_info

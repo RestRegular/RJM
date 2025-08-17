@@ -1,13 +1,33 @@
-from typing import Optional
-
+from typing import Optional, Dict, final
 from pydantic import BaseModel
 
-from app.service.plugin.domain.console import Console
+from app.service.plugin.domain.result import Result
+from app.utils.console import Console
+from app.domain.event import Event
+from app.utils.data_visitor import DataVisitor
+
+
+class ReshapeTemplate(BaseModel):
+    template: str = ""
+    default: bool = True
+
+
+class JoinSettings(BaseModel):
+    merge: bool = False
+    reshape: Dict[str, ReshapeTemplate] = None
+    type: str = 'dict'
+
+    def has_reshape_templates(self) -> bool:
+        return self.reshape is not None
+
+    def get_reshape_template(self, port) -> ReshapeTemplate:
+        return self.reshape[port]
 
 
 class ActionRunner:
     id = None
     debug = True
+    event: Event = None
     session = None
     flow: BaseModel = None  # Flow
     flow_history = None
@@ -16,7 +36,7 @@ class ActionRunner:
     memory: dict = None
     execution_graph = None  # GraphInvoker
     ux: list = None
-    join = None
+    join: JoinSettings = None
 
     @final
     def __init__(self):
@@ -34,8 +54,9 @@ class ActionRunner:
     async def on_error(self, e):
         pass
 
-    def _get_dot_accessor(self, payload) -> DotAccessor:
-        return DotAccessor(self.profile, self.session, payload, self.event, self.flow, self.memory)
+    def _get_dot_accessor(self, payload) -> DataVisitor:
+        return DataVisitor.new(profile=self.profile, session=self.session, payload=payload,
+                               event=self.event, flow=self.flow, memory=self.memory)
 
     def update_profile(self):
         if isinstance(self.profile, Profile):

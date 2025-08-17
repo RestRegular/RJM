@@ -89,4 +89,4 @@ class Plugin(BaseModel):
     start: bool = False
     debug: bool = False
     core: Core
-    meta: MetaData
+    metadata: MetaData

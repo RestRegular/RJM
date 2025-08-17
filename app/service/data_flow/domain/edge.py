@@ -1,5 +1,7 @@
 from pydantic import BaseModel
-from connection import Connection
+from app.service.data_flow.domain.connection import Connection
+
+from app.service.data_flow.domain.flow_graph_data import EdgeData
 
 
 class Edge(BaseModel):
@@ -7,7 +9,7 @@ class Edge(BaseModel):
     source: Connection
     target: Connection
     enabled: bool = True
-    # TODO: data: EdgeData = EdgeData()
+    data: EdgeData = EdgeData()
 
     def is_valid(self, nodes):
         # TODO

@@ -1,7 +1,7 @@
 from typing import Tuple, Dict
 from pydantic import BaseModel
-from edge import Edge
-from edges import Edges
+from app.service.data_flow.domain.edge import Edge
+from app.service.data_flow.domain.edges import Edges
 
 
 class PortToPortEdges(BaseModel):
@@ -20,7 +20,7 @@ class PortToPortEdges(BaseModel):
             - end_port: 目标端口名称
         """
         for start, edges in self.edges.items():  # type: str, Edges
-            for edge in edges:
+            for edge in edges:  # type: Edge
                 yield edge.source.param, edge, edge.target.param
 
     def get_enabled_edges(self) -> Tuple[str, Edge, str]:

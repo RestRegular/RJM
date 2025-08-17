@@ -1,10 +1,10 @@
-from typing import Optional
+from typing import Optional, Any
 
 from pydantic import PrivateAttr
 
 from app.service.data_flow.domain.flow_graph_data import FlowGraphData
 from app.service.data_flow.domain.flow_response import FlowResponse
-from app.service.data_flow.domain.name_inst import NamedInst
+from app.service.data_flow.domain.named_inst import NamedInst
 from app.service.data_flow import CONST_RESPONSE
 
 from app.utils.field_update_logger import FieldUpdateLogger

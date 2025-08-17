@@ -30,7 +30,7 @@ class DebugNodeInfo(BaseModel):
     errors: int = 0
     warnings: int = 0
     calls: List[DebugCallInfo] = []
-    profiler: Profiler
+    # profiler: Profiler
 
     def has_errors(self) -> bool:
         for call in self.calls:

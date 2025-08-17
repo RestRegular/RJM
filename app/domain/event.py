@@ -1,18 +1,19 @@
+import json
 from uuid import uuid4
-from typing import Optional, Tuple, Union
+from typing import Optional, Tuple, Union, List, Any
 
 from pydantic import BaseModel, ConfigDict, model_validator
 
 from app.domain import CONST_MISSING_EVENT_TYPE, CONST_SAVE, CONST_ID
 from app.domain.event_metadata import EventMetadata
 from app.domain.event_session import EventSession
+from app.domain.flat_event import FlatEvent
 from app.domain.inst import Inst
 from app.domain.named_inst import NamedInst
-from app.utils.operation import RecordFlag
-
-from app.utils.general_structure.storage_info import StorageInfo
+from app.utils.data_structure.operation import RecordFlag
+from app.utils.data_structure.storage_info import StorageInfo
 from app.utils.string_manager import capitalize_event_type_id
-from app.utils.request import Request
+from app.utils.data_structure.request import Request
 
 
 class Tags(BaseModel):
@@ -205,7 +206,7 @@ class DottyEncoder(json.JSONEncoder):
     def default(self, obj):
         """Return dict data of Dotty when possible or encode with standard format
 
-        :param object: Input object
+        :param obj: Input object
         :return: Serializable data
         """
         try:
