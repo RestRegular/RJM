@@ -45,7 +45,7 @@ async def test_db_flow():
         inputs=[Port(id="data", name="待写入数据", data_type=DataType.JSON, required=True)],
         outputs=[Port(id="result", name="写入结果", data_type=DataType.NUMBER)],
         config=DBWriteConfig(
-            table="ai_9_messages",
+            default_table="ai_9_messages",
             db_conn={
                 "host": "localhost",
                 "user": "root",

@@ -1,12 +1,14 @@
-from pydantic import BaseModel, Field
 from typing import Optional, List, Dict, Any, Union
+
+from pydantic import BaseModel, Field
 
 from data_flow.port import Port
 from data_flow.graph import Graph
 from data_flow.edge import Edge
 from data_flow.node import Node
-from data_flow.enum_data import BuiltinNodeType, DataType
-from api.results import Result, GraphResult, NodeResult, EdgeResult
+from data_flow.execution_context import ExecutionContext
+from data_flow.enum_data import BuiltinNodeType, DataType, NodeStatus
+from api.results import Result, GraphResult, NodeResult, EdgeResult, ExecutionResult
 
 
 # 响应模型
@@ -64,7 +66,7 @@ class EdgeCreate(BaseModel):
     enabled: bool = True
     condition: Optional[str] = None
 
-class EdgeResponse(BaseModel):
+class EdgeResponse(Response):
     result: Union[EdgeResult, List[EdgeResult], None] = None
 
     @staticmethod
@@ -78,9 +80,9 @@ class EdgeResponse(BaseModel):
 class ExecutionRequest(BaseModel):
     start_node_ids: List[str]
     run_async: bool = False
-    context_params: Dict[str, Any] = {}  # 传递给ExecutionContext的参数
+    context_params: ExecutionContext = ExecutionContext(timeout=30, debug=False)  # 传递给ExecutionContext的参数
 
-class ExecutionResult(BaseModel):
-    execution_id: str
-    status: str  # running/completed/failed
-    node_results: Optional[Dict[str, Dict[str, Any]]] = None
+
+class ExecutionResponse(Response):
+    result: Union[ExecutionResult, List[ExecutionResult], None] = None
+

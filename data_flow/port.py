@@ -10,5 +10,5 @@ from data_flow.enum_data import DataType
 class Port(BaseModel):
     id: str  # 端口唯一标识
     name: str  # 端口名称
-    data_type: DataType  # 端口支持的数据类型
+    data_type: Union[DataType, str]  # 端口支持的数据类型
     required: bool = False  # 是否为必填端口（输入端口有效）

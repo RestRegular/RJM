@@ -5,6 +5,12 @@ from pydantic import BaseModel, Field
 
 from data_flow.edge import Edge
 from data_flow.node import Node
+from data_flow.enum_data import GraphStatus
+
+
+class GraphError(BaseModel):
+    node_id: str  # 错误节点ID
+    error: str  # 错误信息
 
 
 class Graph(BaseModel):
@@ -12,13 +18,30 @@ class Graph(BaseModel):
     name: str  # 图名称（如"用户行为数据处理流程"）
     description: Optional[str] = None  # 图描述
     nodes: Dict[str, Node] = {}  # 节点集合（键为节点ID）
+    starts: List[str] = []       # 起点集合
+    ends: List[str] = []         # 终点集合
     edges: List[Edge] = []       # 边集合
+    status: GraphStatus = GraphStatus.PENDING
+    errors: List[GraphError] = []  # 错误信息
 
     def add_node(self, node: Node):
         """添加节点"""
         if node.id in self.nodes:
             raise ValueError(f"节点ID {node.id} 已存在")
+        if node.is_start:
+            self.starts.append(node.id)
+        if node.is_end:
+            self.ends.append(node.id)
         self.nodes[node.id] = node
+
+    def add_node_list(self, nodes: List[Node]):
+        """批量添加节点"""
+        for node in nodes:
+            self.add_node(node)
+
+    def add_nodes(self, *nodes):
+        """批量添加节点"""
+        self.add_node_list(nodes)
 
     def get_node_by_id(self, node_id: str) -> Optional[Node]:
         """根据节点ID获取节点"""
@@ -52,6 +75,15 @@ class Graph(BaseModel):
             raise ValueError("边已存在")
         self.edges.append(edge)
 
+    def add_edge_list(self, edges: List[Edge]):
+        """批量添加边"""
+        for edge in edges:
+            self.add_edge(edge)
+
+    def add_edges(self, *edges):
+        """添加多个边"""
+        self.add_edge_list(edges)
+
     def get_downstream_edges(self, node_id: str) -> List[Edge]:
         """获取节点的下游边（从该节点出发的边）"""
         return [edge for edge in self.edges if edge.source_node_id == node_id and edge.enabled]
@@ -59,3 +91,6 @@ class Graph(BaseModel):
     def get_upstream_edges(self, node_id: str) -> List[Edge]:
         """获取节点的上游边（指向该节点的边）"""
         return [edge for edge in self.edges if edge.target_node_id == node_id and edge.enabled]
+
+    def to_dict(self):
+        return self.model_dump()

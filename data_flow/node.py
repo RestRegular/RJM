@@ -17,12 +17,16 @@ class Node(BaseModel):
     type: Union[str, BuiltinNodeType]  # 节点类型（如"filter"、"transform"、"aggregator"）
     description: Optional[str] = None  # 节点描述
 
+    # TODO: 节点属性
+    is_start: bool = False  # 是否为起始节点
+    is_end: bool = False  # 是否为结束节点
+
     # 输入/输出端口定义
     inputs: List[Port] = []  # 输入端口（接收上游节点数据）
     outputs: List[Port] = []  # 输出端口（向下游节点传递数据）
 
-    config: NodeConfig  # 节点配置参数，以及后续执行数据存储
-    status: NodeStatus = NodeStatus.PENDING  # 节点运行状态
+    config: Optional[NodeConfig] = None  # 节点配置参数，以及后续执行数据存储
+    status: Union[NodeStatus, str] = NodeStatus.PENDING  # 节点运行状态
 
     # 运行时数据（执行后填充）
     result: Optional[Result] = None  # 节点执行结果（键为输出端口id）
@@ -47,5 +51,5 @@ class Node(BaseModel):
     def set_config(self, key: str, value: Any):
         self.config.set_config(key, value)
 
-    def get_config(self, key: str) -> Any:
-        return self.config.get_config(key)
+    def get_config(self, key: str, default: Any = None) -> Any:
+        return self.config.get_config(key) or default

@@ -1,11 +1,11 @@
 from fastapi import APIRouter, HTTPException
 from typing import List
 
-from api.results import EdgeResult
 from data_flow.edge import Edge
 from data_flow.graph import Graph
-from api.schemas import EdgeCreate, EdgeResponse
+from api.results import EdgeResult
 from api.endpoints.graph import graph_store
+from api.schemas import EdgeCreate, EdgeResponse
 
 router = APIRouter()
 

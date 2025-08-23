@@ -1,12 +1,12 @@
-from typing import Optional, List, Dict
+from typing import Optional, List, Dict, Union, Any
 
 from pydantic import BaseModel, Field
 
+from data_flow.enum_data import *
 from data_flow.graph import Graph
 from data_flow.node import Node
 from data_flow.port import Port
 from data_flow.edge import Edge
-from data_flow import *
 
 
 # 结果模型
@@ -19,8 +19,8 @@ class GraphResult(Result):
     id: str
     name: str
     description: Optional[str] = None
-    node_count: int = Field(0, alias="nodes")  # 简化显示节点数量
-    edge_count: int = Field(0, alias="edges")  # 简化显示边数量
+    node_count: int = 0
+    edge_count: int = 0
 
     @staticmethod
     def from_graph(graph: Graph) -> 'GraphResult':
@@ -41,7 +41,7 @@ class GraphResult(Result):
 class NodeResult(Result):
     id: str
     name: str
-    type: BuiltinNodeType
+    type: Union[BuiltinNodeType, str]
     description: Optional[str] = None
     inputs: List[Port]
     outputs: List[Port]
@@ -85,3 +85,9 @@ class EdgeResult(Result):
 
     class Config:
         from_attributes = True
+
+
+class ExecutionResult(Result):
+    execution_id: str
+    status: Union[GraphStatus, str]
+    node_results: Optional[Dict[str, Dict[str, Any]]] = None

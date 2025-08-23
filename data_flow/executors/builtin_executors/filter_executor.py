@@ -1,3 +1,4 @@
+from collections.abc import Iterable
 from typing import Dict, Any, Callable
 
 from data_flow.node import Node
@@ -23,7 +24,7 @@ class FilterNodeExecutor(NodeExecutor):
     负责根据条件过滤输入数据
     """
 
-    def __init__(self, node: Node = None, context: ExecutionContext = None, filter_handler: Callable = None):
+    def __init__(self, node, context, filter_handler: Callable = None):
         super().__init__(node, context)
         self.filter_handler = filter_handler
 
@@ -32,42 +33,31 @@ class FilterNodeExecutor(NodeExecutor):
         self.process_args(validate=False, **kwargs)
         self.filter_handler = self.filter_handler or self.node.get_config("filter_handler")
         self._validate_node()
-        input_data = self.node.get_config("data.input")
-        # 获取输入数据
-        input_port_id = next(
-            (port.id for port in self.node.inputs if port.required),
-            self.node.inputs[0].id if self.node.inputs else None
-        )
+        input_data = self.get_input_data()
 
-        if not input_port_id or input_port_id not in input_data:
+        if not input_data:
             raise ValueError(f"过滤节点 {self.node.id} 缺少必要的输入数据")
 
-        data = input_data[input_port_id]
-        if not isinstance(data, list):
-            data = [data]  # 确保数据是可迭代的
+        for data in input_data.values():
+            if not isinstance(data, Iterable) or isinstance(data, str):
+                raise ValueError(f"过滤节点 {self.node.id} 的输入端口 {self.node.inputs[0].id} 的数据不是可迭代对象")
 
         # 执行过滤
-        filtered_data = self._apply_filter(data)
+        filtered_data = [self._apply_filter(data) for data in input_data.values()]
 
-        # 准备输出
-        output_port_id = self.node.outputs[0].id if self.node.outputs else "output"
-        return DefaultExecuteResult(
-            node_id=self.node.id,
-            output_data={output_port_id: filtered_data},
-            success=True
+        return self.generate_default_execute_result(
+            result_data=filtered_data
         )
 
-    def _apply_filter(self, data: list) -> list:
+    def _apply_filter(self, data: Iterable[Any]) -> list:
         """应用过滤表达式"""
         try:
-            filtered = []
-            for item in data:
-                # 限制eval只能访问item变量，提高安全性
-                if self.filter_handler(item):
-                    filtered.append(item)
-            return filtered
+            if isinstance(data, dict):
+                return {k: v for k, v in data.items() if self.filter_handler({k: v}, context=self.context, node=self.node)}
+            else:
+                return [item for item in data if self.filter_handler(item, context=self.context, node=self.node)]
         except Exception as e:
-            raise ValueError(f"过滤表达式执行失败: {str(e)}") from e
+            raise ValueError(f"过滤节点执行失败: {str(e)}") from e
 
     def _validate_node(self) -> None:
         """验证过滤节点的特殊要求"""
@@ -80,3 +70,7 @@ class FilterNodeExecutor(NodeExecutor):
     @classmethod
     def get_node_type(cls) -> str | BuiltinNodeType:
         return BuiltinNodeType.FILTER
+
+    @classmethod
+    def get_node_config(cls, context: ExecutionContext) -> NodeConfig:
+        return FilterNodeConfig(filter_handler=lambda item: item['value'] > 5)

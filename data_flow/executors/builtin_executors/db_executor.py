@@ -4,73 +4,131 @@ from typing import Dict, Any, List, Optional
 
 from pydantic import BaseModel
 
+from data_flow import ExecutionContext
 from data_flow.node import Node
 from data_flow.node_config import NodeConfig
 from data_flow.enum_data import BuiltinNodeType
-from data_flow.result import DefaultExecuteResult, ExecuteResult
 from data_flow.node_executor import NodeExecutor
 from data_flow.node_executor_factory import NodeExecutorFactory
+from data_flow.result import DefaultExecuteResult, ExecuteResult
 
-__all__ = ["DBReadConfig", "DBWriteConfig", "DBReadExecutor", "DBWriteExecutor"]
+__all__ = ["DBReadConfig", "DBWriteConfig", "DBConnectionConfig", "DBReadExecutor", "DBWriteExecutor"]
+
+
+class DBConnectionConfig(BaseModel):
+    host: str = "localhost"
+    port: int = 3306
+    user: str
+    password: str
+    dbname: str
 
 
 class DBReadConfig(NodeConfig):
-    """数据库读取节点配置"""
-    query: str  # SQL查询语句
-    db_conn: Dict[str, str]  # 数据库连接信息（host, port, user, password, dbname等）
+    """数据库读取 节点配置（支持多端口多查询）"""
+    db_conn: DBConnectionConfig  # 数据库连接信息（host, port, user, password, dbname等）
+    port_query_mapping: Dict[str, str]  # 端口ID与SQL查询语句的映射关系
     batch_size: int = 1000  # 批量读取大小
+
+    def __init__(self, db_conn: DBConnectionConfig,
+                 port_query_mapping: Dict[str, str],
+                 batch_size: int = 1000, **kwargs):
+        super().__init__(db_conn=db_conn,
+                         port_query_mapping=port_query_mapping,
+                         batch_size=batch_size, **kwargs)
 
 
 class DBWriteConfig(NodeConfig):
     """数据库写入节点配置"""
-    table: str  # 目标表名
-    db_conn: Dict[str, str]  # 数据库连接信息
+    default_table: str = ""  # 默认表名
+    db_conn: DBConnectionConfig  # 数据库连接信息
     batch_size: int = 1000  # 批量写入大小
     upsert_key: Optional[str] = None  # 用于upsert的关键字段
+    port_table_mapping: Dict[str, str] = {}  # 输入端口与表名的映射
+
+    def __init__(self, db_conn: DBConnectionConfig,
+                 default_table: str = "", batch_size: int = 1000,
+                 upsert_key: Optional[str] = None,
+                 port_table_mapping: Dict[str, str] = None, **kwargs):
+        super().__init__(default_table=default_table, db_conn=db_conn, batch_size=batch_size,
+                         upsert_key=upsert_key, port_table_mapping=port_table_mapping,
+                         **kwargs)
 
 
 @NodeExecutorFactory.register_executor
 class DBReadExecutor(NodeExecutor):
-    """数据库读取节点执行器"""
+    """数据库读取节点执行器，支持多端口多查询的数据库读取操作"""
 
     async def execute(self, **kwargs) -> ExecuteResult:
-        self.process_args(**kwargs)
+        self.process_args(** kwargs)
         node: Node = self.node
+        results: Dict[str, List[Any]] = {}
 
-        # 获取配置
-        query = node.get_config("query")
-        db_conn = node.get_config("db_conn")
-        batch_size = node.get_config("batch_size")
+        # 获取数据库连接配置和端口-查询映射关系
+        db_read_config: DBReadConfig = node.config
+        db_conn: DBConnectionConfig = db_read_config.db_conn
+        port_query_mapping: Dict[str, str] = db_read_config.port_query_mapping
 
-        # 执行查询
-        conn = await aiomysql.connect(
-            host=db_conn["host"],
-            port=int(db_conn.get("port", 3306)),
-            user=db_conn["user"],
-            password=db_conn["password"],
-            db=db_conn["dbname"],
-            autocommit=True
-        )
+        # 验证必要配置
+        if not db_conn or not port_query_mapping:
+            return self.generate_default_execute_result(
+                success=False,
+                error="缺少必要的配置缺失：数据库连接信息或端口查询映射未设置"
+            )
 
+        # 建立数据库连接
+        conn = None
         try:
-            async with conn.cursor(aiomysql.DictCursor) as cursor:
-                await cursor.execute(query)
-                result = await cursor.fetchmany(batch_size)
+            conn = await aiomysql.connect(
+                host=db_conn.host or "localhost",  # 提供默认主机
+                port=db_conn.port or 3306,  # 提供默认端口
+                user=db_conn.user,
+                password=db_conn.password,
+                db=db_conn.dbname,
+                autocommit=True
+            )
 
-                # 准备输出
-                output_port_id = node.outputs[0].id if node.outputs else "data"
+            # 为每个端口执行对应的查询
+            async with conn.cursor() as cursor:
+                for port_id, query in port_query_mapping.items():
+                    try:
+                        # 执行查询
+                        await cursor.execute(query)
+                        # 获取所有结果（而非批次获取，确保完整读取）
+                        result = await cursor.fetchall()
+                        results[port_id] = result
+                    except Exception as e:
+                        return self.generate_default_execute_result(
+                            success=False,
+                            error=f"端口 {port_id} 执行查询失败: {str(e)}"
+                        )
+
+            return self.generate_default_execute_result(results)
+        except Exception as e:
+            return self.generate_default_execute_result(
+                success=False,
+                error=f"数据库连接或执行失败: {str(e)}"
+            )
+        finally:
+            if conn:
                 conn.close()
-                return DefaultExecuteResult(
-                    node_id=node.id,
-                    output_data={output_port_id: result},
-                    success=True
-                )
-        except Exception:
-            conn.close()
 
     @classmethod
     def get_node_type(cls) -> str | BuiltinNodeType:
         return BuiltinNodeType.DB_READ
+
+    @classmethod
+    def get_node_config(cls, context: ExecutionContext) -> DBReadConfig:
+        """提供节点默认配置"""
+        return DBReadConfig(
+            db_conn=DBConnectionConfig(
+                host="localhost",
+                port=3306,
+                user="",
+                password="",
+                dbname=""
+            ),
+            port_query_mapping={}
+        )
 
 
 @NodeExecutorFactory.register_executor
@@ -79,63 +137,64 @@ class DBWriteExecutor(NodeExecutor):
 
     async def execute(self, **kwargs) -> ExecuteResult:
         self.process_args(**kwargs)
-        # 获取输入数据
-        input_data = self.node.get_config("data.input")
-        # 获取输入数据
-        input_port_id = next(
-            (port.id for port in self.node.inputs if port.required),
-            self.node.inputs[0].id if self.node.inputs else None
-        )
-
-        if not input_port_id or input_port_id not in input_data:
-            raise ValueError(f"数据库写入节点 {self.node.id} 缺少必要的输入数据")
-
-        input_data = input_data[input_port_id]
-        if not input_data or not isinstance(input_data, list):
-            raise ValueError("写入数据必须为非空列表")
-
+        input_data: Dict[str, Any] = self.get_input_data()
+        if not input_data:
+            raise ValueError("所有输入端口数据均为空")
         # 获取配置
-        table = self.node.get_config("table")
-        db_conn = self.node.get_config("db_conn")
-        batch_size = self.node.get_config("batch_size")
-        upsert_key = self.node.get_config("upsert_key")
-
-        # 执行写入
-        conn = await aiomysql.connect(
-            host=db_conn["host"],
-            port=int(db_conn.get("port", 3306)),
-            user=db_conn["user"],
-            password=db_conn["password"],
-            db=db_conn["dbname"],
-            autocommit=True
-        )
-
+        config = self.node.config
+        db_conn = config.db_conn
+        batch_size = config.batch_size or 100
+        # 建立数据库连接
+        conn = None
         try:
+            conn = await aiomysql.connect(
+                host=db_conn.host,
+                port=int(db_conn.port or 3306),
+                user=db_conn.user,
+                password=db_conn.password,
+                db=db_conn.dbname,
+                autocommit=True
+            )
             async with conn.cursor() as cursor:
-                # 生成插入SQL（简化版，实际应处理字段映射）
-                fields = input_data[0].keys()
-                placeholders = ", ".join([f"%({k})s" for k in fields])
-                sql = f"INSERT INTO {table} ({', '.join(fields)}) VALUES ({placeholders})"
-
-                if upsert_key:
-                    update_clause = ", ".join([f"{k}=VALUES({k})" for k in fields if k != upsert_key])
-                    sql += f" ON DUPLICATE KEY UPDATE {update_clause}"
-
-                # 批量写入
-                total_written = 0
-                for i in range(0, len(input_data), batch_size):
-                    batch = input_data[i:i + batch_size]
-                    total_written += await cursor.executemany(sql, batch)
-
-                return DefaultExecuteResult(
-                    node_id=self.node.id,
-                    output_data={"written_count": total_written},
-                    success=True
+                result_stats = {}
+                # 遍历每个端口的数据并处理
+                for port_id, data in input_data.items():
+                    # 验证数据格式
+                    if not data or not isinstance(data, list):
+                        raise ValueError(f"端口[{port_id}]的数据必须为非空列表")
+                    # 确定目标表名（优先使用映射，其次使用默认表名）
+                    table = config.port_table_mapping.get(port_id, config.default_table)
+                    if not table:
+                        raise ValueError(f"端口[{port_id}]未配置目标数据表")
+                    # 生成SQL并执行
+                    fields = data[0].keys()
+                    placeholders = ", ".join([f"%({k})s" for k in fields])
+                    sql = f"INSERT INTO {table} ({', '.join(fields)}) VALUES ({placeholders})"
+                    # 处理更新逻辑
+                    if config.upsert_key:
+                        update_clause = ", ".join([
+                            f"{k}=VALUES({k})" for k in fields
+                            if k != config.upsert_key
+                        ])
+                        sql += f" ON DUPLICATE KEY UPDATE {update_clause}"
+                    # 批量写入
+                    total_written = 0
+                    for i in range(0, len(data), batch_size):
+                        batch = data[i:i + batch_size]
+                        total_written += await cursor.executemany(sql, batch)
+                    result_stats[port_id] = {
+                        "table": table,
+                        "written_count": total_written
+                    }
+                conn.close()
+                return self.generate_default_execute_result(
+                    result_data={"port_stats": result_stats,
+                                 "total": sum(v["written_count"] for v in result_stats.values())}
                 )
         except Exception as e:
-            conn.close()
-            return DefaultExecuteResult(
-                node_id=node.id,
+            if conn:
+                conn.close()
+            return self.generate_default_execute_result(
                 success=False,
                 error=str(e)
             )
@@ -143,3 +202,7 @@ class DBWriteExecutor(NodeExecutor):
     @classmethod
     def get_node_type(cls) -> str | BuiltinNodeType:
         return BuiltinNodeType.DB_WRITE
+
+    @classmethod
+    def get_node_config(cls, context: ExecutionContext) -> NodeConfig:
+        return None

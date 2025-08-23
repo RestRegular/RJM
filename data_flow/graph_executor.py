@@ -1,12 +1,13 @@
+import json
 import inspect
-from typing import Optional, List, Dict, Any
+from typing import Optional, List, Dict, Any, Literal, Union
 
 from pydantic import BaseModel
 
 from data_flow import *
 from data_flow.result import ExecuteResult
 from data_flow.node import Node
-from data_flow.graph import Graph
+from data_flow.graph import Graph, GraphError
 from data_flow.execution_context import ExecutionContext
 
 
@@ -33,23 +34,21 @@ class GraphExecutor:
         return input_data
 
     async def _execute_node(self, node: Node) -> Node:
-        """执行单个节点，使用新的执行器架构"""
+        """执行单个节点"""
         node.status = NodeStatus.RUNNING
         try:
-            # 获取上游数据
-            input_data = await self._get_upstream_data(node.id)
-
-            node.set_config("data.input", input_data)
-
             # 通过工厂创建合适的执行器
             if not node.executor:
                 node.executor = NodeExecutorFactory.create_executor(
                     node=node, context=self.context)
-
+            # 获取上游数据
+            input_data = await self._get_upstream_data(node.id)
+            node.set_config("data.input", input_data)
             result = await self._run_executor(node.executor, node=node, context=self.context)
-
             node.result = result
             node.status = NodeStatus.SUCCESS if result.success else NodeStatus.FAILED
+            if not result.success:
+                node.error = result.error
         except Exception as e:
             node.status = NodeStatus.FAILED
             node.error = str(e)
@@ -68,31 +67,10 @@ class GraphExecutor:
             # 同步执行
             return executor.execute(**kwargs)
 
-    # async def _execute_node(self, node: Node) -> Node:
-    #     """执行单个节点"""
-    #     node.status = NodeStatus.RUNNING
-    #     try:
-    #         # 获取上游数据
-    #         input_data = await self._get_upstream_data(node.id)
-    #         # 校验必填输入端口
-    #         for port in node.inputs:
-    #             if port.required and port.id not in input_data:
-    #                 raise ValueError(f"节点 {node.id} 缺少必填输入端口 {port.id} 的数据")
-    #         # 执行节点处理函数
-    #         handler = self._node_handlers.get(node.type)
-    #         if not handler:
-    #             raise ValueError(f"未注册节点类型 {node.type} 的处理函数")
-    #         # 执行并获取结果（结果需按输出端口ID分组）
-    #         result = await handler(node, input_data, self.context)
-    #         node.result = result
-    #         node.status = NodeStatus.SUCCESS
-    #     except Exception as e:
-    #         node.status = NodeStatus.FAILED
-    #         node.error = str(e)
-    #     return node
-
-    async def run(self, start_node_ids: List[str]) -> Graph:
-        """执行图（从指定的起始节点开始）"""
+    async def run(self, start_node_ids: Optional[List[str]] = None) -> Graph:
+        """执行图"""
+        start_node_ids = start_node_ids or self.graph.starts
+        self.graph.status = GraphStatus.RUNNING
         # 拓扑排序（确保节点按依赖顺序执行）
         sorted_node_ids = self._topological_sort()
         # 过滤出需要执行的节点（从起始节点可达的节点）
@@ -103,11 +81,13 @@ class GraphExecutor:
             if not node:
                 continue
             await self._execute_node(node)
+            if node.status == NodeStatus.FAILED:
+                self.graph.errors.append(GraphError(node_id=node_id, error=node.error))
+        self.graph.status = GraphStatus.COMPLETED if len(self.graph.errors) == 0 else GraphStatus.FAILED
         return self.graph
 
     def _topological_sort(self) -> List[str]:
         """对图进行拓扑排序（确保依赖前置节点先执行）"""
-        # 简化实现：基于入度的拓扑排序
         in_degree = {node_id: 0 for node_id in self.graph.nodes}
         for edge in self.graph.edges:
             in_degree[edge.target_node_id] += 1
@@ -132,3 +112,15 @@ class GraphExecutor:
                     reachable.add(edge.target_node_id)
         # 按拓扑顺序返回
         return [node_id for node_id in sorted_ids if node_id in reachable]
+
+    def get_node_results(self, mode: Union[Literal['json', 'python'], str] = 'python') -> Dict[str, Any]:
+        """获取节点执行结果（按节点ID分组）"""
+        result = {
+            node_id: {
+                "status": node.status,
+                "result": node.result.model_dump(mode=mode),
+                "error": node.error
+            }
+            for node_id, node in self.graph.nodes.items()
+        }
+        return result if mode == 'python' else json.dumps(result)

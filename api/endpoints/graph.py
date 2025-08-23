@@ -1,8 +1,8 @@
 from fastapi import APIRouter, HTTPException, status
 from typing import List, Optional
 
-from api.results import GraphResult
 from data_flow.graph import Graph
+from api.results import GraphResult
 from api.schemas import GraphCreate, GraphUpdate, GraphResponse
 
 router = APIRouter()

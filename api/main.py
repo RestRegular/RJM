@@ -19,6 +19,7 @@ def main():
     uvicorn.run("api.main:app", port=8080)
     pass
 
+
 if __name__ == '__main__':
     main()
 
