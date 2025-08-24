@@ -14,3 +14,9 @@ class NodeConfig(BaseModel):
 
     def set_config(self, key: str, value: Any):
         self.config[key] = value
+
+    def __getattr__(self, item: str) -> Any:
+        return self.get_config(item)
+
+    def __setattr__(self, key: str, value: Any) -> str:
+        self.set_config(key, value)

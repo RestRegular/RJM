@@ -52,4 +52,37 @@ class Node(BaseModel):
         self.config.set_config(key, value)
 
     def get_config(self, key: str, default: Any = None) -> Any:
-        return self.config.get_config(key) or default
+        return self.config.get_config(key, default)
+
+    def base_info(self) -> str:
+        return f"<Node[{self.id}] - ({self.type}) ({self.name})>"
+
+    def status_info(self) -> str:
+        return f"({self.status})"
+
+    def inputs_info(self) -> str:
+        return f"Inputs: {self.inputs}" if self.inputs else ""
+
+    def outputs_info(self) -> str:
+        return f"Outputs: {self.outputs}" if self.outputs else ""
+
+    def __str__(self):
+        # 基础信息部分
+        base_info = self.base_info()
+        # 状态信息，使用括号突出显示
+        status_info = self.status_info()
+        # 输入输出信息，仅在有值时显示
+        inputs_info = self.inputs_info()
+        outputs_info = self.outputs_info()
+
+        # 组合所有信息，过滤空字符串
+        parts = [base_info, status_info]
+        if inputs_info:
+            parts.append(inputs_info)
+        if outputs_info:
+            parts.append(outputs_info)
+
+        return f'[{" | ".join(parts)}]'
+
+    def __repr__(self):
+        return self.__str__()

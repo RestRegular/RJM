@@ -24,7 +24,15 @@ class Graph(BaseModel):
     status: GraphStatus = GraphStatus.PENDING
     errors: List[GraphError] = []  # 错误信息
 
-    def add_node(self, node: Node):
+    def __str__(self):
+        return (f"[Graph({self.name!r}): id={self.id[:8] + ('...' if len(self.id) > 8 else self.id)}, "
+                f"nodes={len(self.nodes)}, edges={len(self.edges)}, "
+                f"status={self.status}]")
+
+    def __repr__(self):
+        return self.__str__()
+
+    def add_node(self, node: Node) -> 'Graph':
         """添加节点"""
         if node.id in self.nodes:
             raise ValueError(f"节点ID {node.id} 已存在")
@@ -33,32 +41,39 @@ class Graph(BaseModel):
         if node.is_end:
             self.ends.append(node.id)
         self.nodes[node.id] = node
+        return self  # 返回当前图对象，支持链式调用
 
-    def add_node_list(self, nodes: List[Node]):
+    def add_node_list(self, nodes: List[Node]) -> 'Graph':
         """批量添加节点"""
         for node in nodes:
             self.add_node(node)
+        return self
 
-    def add_nodes(self, *nodes):
+    def add_nodes(self, *nodes) -> 'Graph':
         """批量添加节点"""
-        self.add_node_list(nodes)
+        return self.add_node_list(nodes)
 
     def get_node_by_id(self, node_id: str) -> Optional[Node]:
         """根据节点ID获取节点"""
-        return self.nodes.get(node_id)
+        return self.nodes.get(node_id, None)
 
-    def remove_node(self, node_id: str):
+    def search_node_by_name(self, node_name: str) -> Optional[Node]:
+        """根据节点名称搜索节点"""
+        return next((node for node in self.nodes.values() if node.name == node_name), None)
+
+    def remove_node(self, node_id: str) -> 'Graph':
         """删除节点及关联的边"""
         if node_id not in self.nodes:
-            return
+            return self
         del self.nodes[node_id]
         # 移除与该节点相关的所有边
         self.edges = [
             edge for edge in self.edges
             if edge.source_node_id != node_id and edge.target_node_id != node_id
         ]
+        return self
 
-    def add_edge(self, edge: Edge):
+    def add_edge(self, edge: Edge) -> 'Graph':
         """添加边（自动校验节点和端口是否存在）"""
         # 校验上游节点和端口
         if edge.source_node_id not in self.nodes:
@@ -74,15 +89,17 @@ class Graph(BaseModel):
         if edge in self.edges:
             raise ValueError("边已存在")
         self.edges.append(edge)
+        return self
 
-    def add_edge_list(self, edges: List[Edge]):
+    def add_edge_list(self, edges: List[Edge]) -> 'Graph':
         """批量添加边"""
         for edge in edges:
             self.add_edge(edge)
+        return self
 
-    def add_edges(self, *edges):
+    def add_edges(self, *edges) -> 'Graph':
         """添加多个边"""
-        self.add_edge_list(edges)
+        return self.add_edge_list(edges)
 
     def get_downstream_edges(self, node_id: str) -> List[Edge]:
         """获取节点的下游边（从该节点出发的边）"""

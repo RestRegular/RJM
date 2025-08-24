@@ -1,3 +1,4 @@
+import logging
 from typing import Dict, Any, Callable
 
 from data_flow.node import Node
@@ -7,12 +8,14 @@ from data_flow.node_executor import NodeExecutor
 from data_flow.node_executor_factory import NodeExecutorFactory
 from data_flow.execution_context import ExecutionContext
 from data_flow.result import ExecuteResult, DefaultExecuteResult
-
+from utils.log_system import get_logger
 
 __all__ = [
     "OutputNodeConfig",
     "OutputNodeExecutor"
 ]
+
+logger = get_logger(__name__)
 
 
 class OutputNodeConfig(NodeConfig):
@@ -37,9 +40,16 @@ class OutputNodeExecutor(NodeExecutor):
         input_data = self.get_input_data()
 
         if not input_data:
-            raise ValueError(f"输出节点 {self.node.id} 没有获取到输入数据")
+            error = ValueError(f"输出节点 {self.node.id} 没有获取到输入数据")
+            self.log_validation_failed(error, f"缺少必要的输入数据")
+            raise error
 
-        result_data = self.data_processor(input_data, node=self.node, context=self.context)
+        self.log_handle_start()
+        try:
+            result_data = self.data_processor(input_data, node=self.node, context=self.context)
+        except Exception as e:
+            self.log_handle_failed(e, str(e))
+            raise ValueError(f"处理节点执行失败: {str(e)}") from e
 
         return self.generate_default_execute_result(result_data=result_data)
 
@@ -54,3 +64,6 @@ class OutputNodeExecutor(NodeExecutor):
     @classmethod
     def get_node_config(cls, context: ExecutionContext) -> NodeConfig:
         return OutputNodeConfig(data_processor=lambda input_data, **kwargs: input_data)
+
+    def get_logger(self) -> logging.Logger:
+        return logger

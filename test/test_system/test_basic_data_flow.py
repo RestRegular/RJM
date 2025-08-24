@@ -13,14 +13,22 @@ input_node = Node(
     name="数据输入",
     type=BuiltinNodeType.INPUT,
     inputs=[],
-    outputs=[Port(id="output", name="输出数据", data_type=DataType.JSON)]
+    outputs=[Port(id="output", name="输出数据", data_type=DataType.LIST)]
 )
 
 filter_node = Node(
     name="数据过滤",
     type=BuiltinNodeType.FILTER,
-    inputs=[Port(id="input", name="输入数据", data_type=DataType.JSON, required=True)],
-    outputs=[Port(id="passed", name="通过数据", data_type=DataType.JSON)]
+    inputs=[Port(id="input", name="输入数据", data_type=DataType.LIST, required=True)],
+    outputs=[Port(id="passed", name="通过数据", data_type=DataType.LIST)],
+    config=FilterNodeConfig(
+        filter_handler=lambda port_datas, **kwargs: [
+            item
+            for port_data in port_datas.values()
+            for item in port_data
+            if item['value'] > 5
+        ]
+    )
 )
 
 
@@ -36,7 +44,9 @@ async def test():
         target_port_id="input"
     ))
 
-    context = ExecutionContext(debug=True, initial_data=[{"value": 1}, {"value": 3}, {"value": 5}, {"value": 7}, {"value": 9}])
+    context = ExecutionContext(
+        debug=True,
+        initial_data=[{"value": 1}, {"value": 3}, {"value": 5}, {"value": 7}, {"value": 9}])
     executor = GraphExecutor(graph, context)
     result_graph = await executor.run(start_node_ids=[input_node.id])
 
@@ -49,7 +59,6 @@ def main():
 
     executor, result_graph = asyncio.run(test())
 
-    print("过滤后的数据：")
     pprint(executor.get_node_results())
 
 

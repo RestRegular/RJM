@@ -1,4 +1,5 @@
 import json
+import logging
 from typing import Dict, List, Any
 
 from data_flow import *
@@ -10,6 +11,7 @@ from data_flow.edge import Edge
 from data_flow.enum_data import BuiltinNodeType, DataType
 from data_flow.execution_context import ExecutionContext
 from data_flow.graph_builder import GraphBuilder
+from utils.data_visitor import DataVisitor
 
 
 def create_import_flow_graph() -> Graph:
@@ -92,7 +94,7 @@ def create_import_flow_graph() -> Graph:
                     status=node_info["status"],
                     error=node_info["error"],
                     config=NodeConfig(
-                        config={
+                        **{
                             cfg["config_key"]: cfg["config_value"]
                             for cfg in port_datas[graph_node_config_info_port.id]
                             if cfg["node_id"] == node_info["id"]
@@ -234,10 +236,12 @@ def create_import_flow_graph_by_graph_builder() -> Graph:
     """
     builder = GraphBuilder(
         name="图数据导入流程",
-        description="从MySQL数据库读取并重建流程图数据（节点、边、配置）"
+        description="从MySQL数据库读取并重建流程图数据（节点、边、配置）",
+        log_level=logging.DEBUG
     )
 
     # 定义所有端口
+    graph_raw_data = builder.port("graph_raw_data", "图数据", DataType.DICT)
     graph_base_info = builder.port("graph_base_info", "图基本信息", DataType.LIST)
     graph_node_info = builder.port("graph_node_info", "图节点信息", DataType.LIST)
     graph_edge_info = builder.port("graph_edge_info", "图边信息", DataType.LIST)
@@ -280,13 +284,13 @@ def create_import_flow_graph_by_graph_builder() -> Graph:
                 type=node_info["type"],
                 is_start=node_info["is_start"],
                 is_end=node_info["is_end"],
-                inputs=[],
-                outputs=[],
+                inputs=[Port.model_validate(port) for port in json.loads(node_info["inputs"])],
+                outputs=[Port.model_validate(port) for port in json.loads(node_info["outputs"])],
                 description=node_info["description"],
                 status=node_info["status"],
                 error=node_info["error"],
                 config=NodeConfig(
-                    config={
+                    **{
                         cfg["config_key"]: cfg["config_value"]
                         for cfg in port_datas[graph_node_config_info.id]
                         if cfg["node_id"] == node_info["id"]
@@ -328,7 +332,8 @@ def create_import_flow_graph_by_graph_builder() -> Graph:
                 name=base_info["name"],
                 description=base_info["description"],
                 status=base_info["status"]
-            ).add_nodes(*port_datas[node_objects.id]).add_edges(*port_datas[edge_objects.id])
+            ).add_node_list(port_datas[node_objects.id]) \
+                .add_edge_list(port_datas[edge_objects.id])
             for base_info in port_datas[graph_base_info.id]
         ],
         description="将图基本信息、节点对象和边对象组装成完整的Graph对象"
@@ -355,7 +360,7 @@ def create_import_flow_graph_by_graph_builder() -> Graph:
     return builder.build()
 
 
-async def test_import_graph() -> tuple[GraphExecutor, Graph]:
+async def test_import_graph() -> tuple[GraphExecutor, Graph, List[Graph]]:
     """
     测试图数据导入图功能
 
@@ -367,13 +372,16 @@ async def test_import_graph() -> tuple[GraphExecutor, Graph]:
     graph = create_import_flow_graph_by_graph_builder()
 
     # 创建执行上下文
-    context = ExecutionContext(processing_graph=graph)
+    context = ExecutionContext(processing_graph=graph, debug=True, log_level=logging.DEBUG)
 
     # 创建执行器并执行
     executor = GraphExecutor(graph, context)
     executed_graph = await executor.run()
 
-    return executor, executed_graph
+    results = DataVisitor(executed_graph.search_node_by_name("图数据输出").result.get_result_data())["import_result.assembled_graph"]  # type: List[Graph]
+    for result in results:
+        result.status = GraphStatus.PENDING
+    return executor, executed_graph, results
 
 
 def main():
@@ -384,7 +392,7 @@ def main():
 
     try:
         # 执行测试
-        executor, graph = asyncio.run(test_import_graph())
+        executor, graph, result_graphs = asyncio.run(test_import_graph())
 
         # 输出执行过程中的错误
         if graph.errors:
@@ -394,7 +402,8 @@ def main():
         else:
             print("图数据导入流程执行成功，无错误")
             print("导入结果：")
-            print(executor.get_node_results())
+            for result_graph in result_graphs:
+                print(result_graph)
 
     except Exception as e:
         print(f"执行过程中发生异常: {e}")

@@ -1,3 +1,4 @@
+import logging
 from collections.abc import Iterable
 from typing import Dict, Any, Callable
 
@@ -8,11 +9,14 @@ from data_flow.node_executor import NodeExecutor
 from data_flow.node_executor_factory import NodeExecutorFactory
 from data_flow.execution_context import ExecutionContext
 from data_flow.result import ExecuteResult, DefaultExecuteResult
+from utils.log_system import get_logger
 
 __all__ = [
     "MapperNodeConfig",
     "MapperNodeExecutor"
 ]
+
+logger = get_logger(__name__)
 
 
 class MapperNodeConfig(NodeConfig):
@@ -24,6 +28,7 @@ class MapperNodeConfig(NodeConfig):
 @NodeExecutorFactory.register_executor
 class MapperNodeExecutor(NodeExecutor):
     """映射节点执行器"""
+
     def __init__(self, node, context, map_handler: Callable[[Any], Any] = None):
         super().__init__(node, context)
         self.map_handler = map_handler
@@ -34,9 +39,12 @@ class MapperNodeExecutor(NodeExecutor):
         self.map_handler = self.map_handler or self.node.get_config("map_handler")
 
         if not input_data:
-            raise ValueError(f"转换节点 {self.node.id} 缺少必要的输入数据")
+            error = ValueError(f"转换节点 {self.node.id} 缺少必要的输入数据")
+            self.log_validation_failed(error, f"缺少必要的输入数据")
+            raise
 
         # 将多输入数据传递给映射处理器
+        self.log_handle_start()
         try:
             # 映射处理器现在需要处理多个输入
             result_data = self.map_handler(
@@ -45,6 +53,7 @@ class MapperNodeExecutor(NodeExecutor):
                 node=self.node
             )
         except Exception as e:
+            self.log_handle_failed(e, str(e))
             raise ValueError(f"转换节点执行失败: {str(e)}") from e
 
         return self.generate_default_execute_result(result_data)
@@ -56,3 +65,6 @@ class MapperNodeExecutor(NodeExecutor):
     @classmethod
     def get_node_config(cls, context: ExecutionContext) -> NodeConfig:
         return None
+
+    def get_logger(self) -> logging.Logger:
+        return logger

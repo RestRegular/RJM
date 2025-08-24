@@ -1,4 +1,5 @@
 import json
+import logging
 from typing import Dict, List, Any
 
 from data_flow import *
@@ -351,6 +352,8 @@ def create_export_flow_graph_by_graph_builder() -> Graph:
                 "description": node.description,
                 "is_start": node.is_start,
                 "is_end": node.is_end,
+                "inputs": json.dumps([port.model_dump() for port in node.inputs]),
+                "outputs": json.dumps([port.model_dump() for port in node.outputs]),
                 "status": node.status,
                 "error": node.error
             }
@@ -409,7 +412,7 @@ def create_export_flow_graph_by_graph_builder() -> Graph:
             dbname="data_flow",
             user="root"
         ),
-        table_mapping={
+        port_table_mapping={
             graph_base_info.id: "graph",
             graph_node_info.id: "graph_node",
             graph_node_config_info.id: "graph_node_config",
@@ -445,7 +448,7 @@ async def test_export_graph() -> tuple[GraphExecutor, Graph]:
     graph = create_export_flow_graph_by_graph_builder()
 
     # 创建执行上下文，传入待导出的图数据
-    context = ExecutionContext(initial_data=[graph], processing_graph=graph)
+    context = ExecutionContext(initial_data=[graph], processing_graph=graph, debug=True, log_level=logging.INFO)
 
     # 创建执行器并执行
     executor = GraphExecutor(graph, context)
@@ -471,7 +474,6 @@ def main():
                 print(f"错误: {error.error}")
         else:
             print("图数据导出流程执行成功，无错误")
-            print(executor.get_node_results())
 
     except Exception as e:
         print(f"执行过程中发生异常: {e}")

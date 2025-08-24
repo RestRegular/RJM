@@ -1,3 +1,4 @@
+import logging
 from typing import Dict, Any, Callable
 
 from data_flow.node import Node
@@ -12,6 +13,10 @@ __all__ = [
     "InputNodeConfig",
     "InputNodeExecutor"
 ]
+
+from utils.log_system import get_logger
+
+logger = get_logger(__name__)
 
 
 class InputNodeConfig(NodeConfig):
@@ -36,15 +41,17 @@ class InputNodeExecutor(NodeExecutor):
         input_data = self.get_input_data()
         # 输入节点通常不需要输入数据
         if input_data:
-            self.context.global_vars.get("logger", print)(
-                f"警告: 输入节点 {self.node.id} 收到未预期的输入数据"
-            )
+            logger.warning(f"输入节点 {self.node} 接收到未预期的数据：{str(input_data)[:50] + ('...' if len(input_data) > 50 else '')}\n"
+                           f"输入节点通常不需要输入端口和输入数据")
 
+        self.log_handle_start()
         data = self.data_provider(context=self.context, node=self.node)
 
         output_port_ids = [port.id for port in self.node.outputs]
         if not output_port_ids:
-            raise ValueError(f"输入节点 {self.node.id} 没有定义输出端口")
+            error = ValueError(f"输入节点 {self.node.id} 没有定义输出端口")
+            self.log_execution_failed(error, "没有定义输出端口")
+            raise error
 
         return self.generate_default_execute_result(result_data=data)
 
@@ -55,7 +62,9 @@ class InputNodeExecutor(NodeExecutor):
     def _validate_node(self) -> None:
         """验证输入节点的特殊要求：不应有输入端口"""
         if self.node and self.node.inputs:
-            raise ValueError(f"输入节点 {self.node.id} 不应有输入端口")
+            error = ValueError(f"输入节点 {self.node.id} 不应有输入端口")
+            self.log_validation_failed(error, f"输入节点不应有输入端口")
+            raise error
 
     @classmethod
     def get_node_type(cls) -> str | BuiltinNodeType:
@@ -64,3 +73,6 @@ class InputNodeExecutor(NodeExecutor):
     @classmethod
     def get_node_config(cls, context: ExecutionContext) -> InputNodeConfig:
         return InputNodeConfig(data_provider=lambda **kwargs: context.get_context("initial_data"))
+
+    def get_logger(self) -> logging.Logger:
+        return logger

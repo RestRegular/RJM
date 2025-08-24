@@ -1,0 +1,100 @@
+"""
+自定义{{ node_type_name }}类型（ {{ node_type }} ）节点执行器
+{{ executor_description }}
+TODO: 请添加更详细的执行器描述
+
+author: {{ author }}
+date: {{ date }}
+"""
+
+import logging
+from typing import Dict, Any, Callable
+
+from data_flow.node import Node
+from data_flow.node_config import NodeConfig
+from data_flow.enum_data import BuiltinNodeType
+from data_flow.node_executor import NodeExecutor
+from data_flow.node_executor_factory import NodeExecutorFactory
+from data_flow.execution_context import ExecutionContext
+from data_flow.result import ExecuteResult, DefaultExecuteResult
+from utils.log_system import get_logger
+
+__all__ = [
+    "{{ config_class_name }}",
+    "{{ executor_class_name }}"
+]
+
+logger = get_logger(__name__)
+
+
+class {{ config_class_name }}(NodeConfig):
+    """
+    节点配置类
+    TODO: 你可以自定义节点的其他配置项
+    """
+    {{ handler_attr }}: Callable
+
+
+@NodeExecutorFactory.register_executor
+class {{ executor_class_name }}(NodeExecutor):
+    """
+    {{ executor_description }}
+    TODO: 请添加更详细的执行器描述
+    """
+
+    def __init__(self, node, context, {{ handler_attr }}: Callable = None):
+        super().__init__(node, context)
+        self.{{ handler_attr }} = {{ handler_attr }}
+
+    def execute(self, **kwargs) -> ExecuteResult:
+        self.process_args(**kwargs)
+        self.{{ handler_attr }} = self.{{ handler_attr }} or self.node.get_config("{{ handler_attr }}")
+        self._validate_node()
+        input_data = self.get_input_data()
+
+        {% if need_input_check %}
+        if not input_data:
+            error = ValueError(f"{{ node_type_name }}节点 {self.node.id} 缺少必要的输入数据")
+            self.log_validation_failed(error, f"缺少必要的输入数据")
+            raise error
+        {% endif %}
+
+        self.log_handle_start()
+        try:
+            # TODO: 你可以自定义节点对数据的处理逻辑
+            result_data = self.{{ handler_attr }}(input_data, context=self.context, node=self.node)
+        except Exception as e:
+            self.log_handle_failed(e, str(e))
+            raise ValueError(f"{{ node_type_name }}节点执行失败: {str(e)}") from e
+
+        return self.generate_default_execute_result(result_data=result_data)
+
+    def _validate_node(self) -> None:
+        """
+        验证节点的特殊要求
+        TODO: 你可以添加自定义数据验证逻辑
+        """
+        {% if need_handler_check %}
+        if not self.{{ handler_attr }}:
+            error = ValueError(f"{{ node_type_name }}节点 {self.node.id} 必须配置处理器")
+            self.log_validation_failed(error, "缺少处理器配置")
+            raise error
+        {% endif %}
+        {% if need_input_port_check %}
+        if self.node and not self.node.inputs:
+            error = ValueError(f"{{ node_type_name }}节点 {self.node.id} 必须至少有一个输入端口")
+            self.log_validation_failed(error, "输入端口为空")
+            raise error
+        {% endif %}
+
+    @classmethod
+    def get_node_type(cls) -> str | BuiltinNodeType:
+        return "{{ node_type }}"
+
+    @classmethod
+    def get_node_config(cls, context: ExecutionContext) -> NodeConfig:
+        # TODO: 你可以自定义默认节点配置
+        return {{ config_class_name }}({{ handler_attr }}={{ default_handler }})
+
+    def get_logger(self) -> logging.Logger:
+        return logger

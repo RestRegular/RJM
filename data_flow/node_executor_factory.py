@@ -1,9 +1,13 @@
+import logging
 from abc import ABC, abstractmethod
 from typing import Dict, Type
 
 from data_flow.node import Node
 from data_flow.node_executor import NodeExecutor
 from data_flow.execution_context import ExecutionContext
+from utils.log_system import get_logger
+
+logger = get_logger(__name__)
 
 
 class NodeExecutorFactory:
@@ -69,6 +73,8 @@ class NodeExecutorFactory:
         """
         executor_class = cls._executor_map.get(str(node.type))
         if not executor_class:
+            logger.setLevel(context.log_level)
+            logger.error(f"未找到节点类型 {node.type} 的执行器", exc_info=context.log_level == logging.DEBUG)
             raise ValueError(f"未找到节点类型 {node.type} 的执行器")
 
         return executor_class(node, context, **kwargs)
