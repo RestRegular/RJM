@@ -19,11 +19,13 @@ class GraphExecutor:
     def __init__(self, graph: Graph, context: ExecutionContext):
         self.graph = graph
         self.context = context
-        logger.setLevel(self.context.log_level)
+        logger.setLevel(self.context.log_level or logging.INFO)
 
     async def _get_upstream_data(self, node_id: str) -> Dict[str, Any]:
         """获取上游节点传递到当前节点的数据（按输入端口分组）"""
         logger.debug(f"开始获取节点 {node_id} 的上游数据")
+
+        target_node = self.graph.get_node_by_id(node_id)
 
         upstream_edges = self.graph.get_upstream_edges(node_id)
         logger.debug(f"节点 {node_id} 的上游边数量: {len(upstream_edges)}")
@@ -47,7 +49,14 @@ class GraphExecutor:
 
             # 进行条件判断
             if edge.condition:
-                condition_result = edge.condition(source_port_data)
+                condition_result = edge.condition(
+                    source_port_data,
+                    source_node=source_node,
+                    target_node=target_node,
+                    source_port=edge.source_port_id,
+                    target_port=edge.target_port_id,
+                    edge=edge
+                )
                 logger.debug(f"边条件检查结果: {condition_result}")
                 if not condition_result:
                     logger.debug(f"边条件不满足，跳过该边")

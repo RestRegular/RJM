@@ -1,8 +1,6 @@
 from typing import Dict, List, Any, Callable, Optional, Union
 import logging
 
-from pylint.checkers.utils import node_type
-
 from data_flow import *
 from data_flow.graph import Graph
 from data_flow.node import Node
@@ -34,7 +32,7 @@ class GraphBuilder:
         logger.debug(f"图构建器初始化完成，当前端口数: {len(self.ports)}，节点数: {len(self.nodes)}")
 
     def port(self, port_id: Optional[str] = None, name: str = "",
-             data_type: DataType = DataType.ANY, required: bool = True) -> Port:
+             data_type: Union[DataType, str] = DataType.ANY, required: bool = True) -> Port:
         """
         创建并注册一个端口
 

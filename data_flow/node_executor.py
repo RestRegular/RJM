@@ -72,7 +72,7 @@ class NodeExecutor(ABC):
         raise NotImplementedError("子类必须实现 get_logger 方法")
 
     def adjust_logger(self):
-        self.get_logger().setLevel(self.context.get_context("log_level", logging.DEBUG))
+        self.get_logger().setLevel(self.context.get_context("log_level", logging.INFO))
 
     def log_execution_start(self):
         """记录节点开始执行"""

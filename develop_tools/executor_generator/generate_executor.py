@@ -46,7 +46,7 @@ def generate_executor(
     :param need_input_port_check: 是否需要输入端口检查
     """
     # 初始化Jinja2环境
-    env = Environment(loader=FileSystemLoader(os.path.dirname(__file__)))
+    env = Environment(loader=FileSystemLoader(os.path.abspath(os.path.join(os.path.dirname(__file__), "..", "resource"))))
     template = env.get_template("executor_template.j2")
 
     output_path = os.path.join(output_dir_path, f"{node_type.lower()}_executor.py")

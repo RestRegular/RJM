@@ -1,0 +1,65 @@
+{% set graph_name = graph_name | default("数据处理流程") %}
+{% set graph_description = graph_description | default("默认数据处理流转图") %}
+
+import asyncio
+from typing import List, Dict, Any
+from data_flow import *
+from data_flow.node import Node
+from data_flow.port import Port
+from data_flow.edge import Edge
+from data_flow.enum_data import BuiltinNodeType, DataType
+from data_flow.graph import Graph
+from data_flow.graph_builder import GraphBuilder
+
+
+def create_{{ graph_name | lower | replace(" ", "_") }}_graph() -> Graph:
+    """
+    创建{{ graph_name }}
+
+    {{ graph_description }}
+    """
+    # 创建图构建器
+    builder = GraphBuilder(
+        name="{{ graph_name }}",
+        description="{{ graph_description }}"
+    )
+
+    # 定义端口
+    {% for port in ports %}
+    {{ port.id }} = builder.port(
+        id="{{ port.id }}",
+        name="{{ port.name }}",
+        data_type=DataType.{{ port.data_type }}
+        {% if port.required %}
+        , required=True
+        {% endif %}
+    )
+    {% endfor %}
+
+    # 创建节点
+    {% for node in nodes %}
+    {{ node.id }} = builder.{{ node.type }}_node(
+        name="{{ node.name }}",
+        {% if node.inputs %}inputs=[{{ node.inputs | join(", ") }}],{% endif %}
+        {% if node.outputs %}outputs=[{{ node.outputs | join(", ") }}],{% endif %}
+        {% if node.description %}description="{{ node.description }}",{% endif %}
+        {% if node.is_start %}is_start=True,{% endif %}
+        {% if node.is_end %}is_end=True,{% endif %}
+        {% if node.config %}
+        {{ node.config }}
+        {% endif %}
+    )
+    {% endfor %}
+
+    # 连接节点
+    {% for edge in edges %}
+    builder.connect(
+        source_node={{ edge.source_node }},
+        source_port={{ edge.source_port }},
+        target_node={{ edge.target_node }},
+        target_port={{ edge.target_port }}
+    )
+    {% endfor %}
+
+    # 构建并返回图
+    return builder.build()

@@ -332,7 +332,7 @@ def create_import_flow_graph_by_graph_builder() -> Graph:
                 name=base_info["name"],
                 description=base_info["description"],
                 status=base_info["status"]
-            ).add_node_list(port_datas[node_objects.id]) \
+            ).add_node(*port_datas[node_objects.id]) \
                 .add_edge_list(port_datas[edge_objects.id])
             for base_info in port_datas[graph_base_info.id]
         ],

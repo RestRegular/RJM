@@ -1,4 +1,5 @@
 import asyncio
+import logging
 from typing import Dict
 
 from data_flow.node import Node, NodeConfig
@@ -31,7 +32,6 @@ filter_node = Node(
     )
 )
 
-
 # 3. 执行图
 async def test():
     graph = Graph(name="简单数据处理流程")
@@ -41,12 +41,14 @@ async def test():
         source_node_id=input_node.id,
         source_port_id="output",
         target_node_id=filter_node.id,
-        target_port_id="input"
+        target_port_id="input",
+        condition=lambda source_port_datas: len(datas) > 5
     ))
 
     context = ExecutionContext(
         debug=True,
-        initial_data=[{"value": 1}, {"value": 3}, {"value": 5}, {"value": 7}, {"value": 9}])
+        initial_data=[{"value": 1}, {"value": 3}, {"value": 5}, {"value": 7}, {"value": 9}]
+    )
     executor = GraphExecutor(graph, context)
     result_graph = await executor.run(start_node_ids=[input_node.id])
 
