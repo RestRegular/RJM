@@ -1,77 +1,44 @@
-from fastapi import APIRouter, HTTPException, status
+import asyncio
 from typing import List, Optional
+from fastapi import APIRouter, HTTPException, status, UploadFile, File
 
 from data_flow.graph import Graph
 from api.results import GraphResult
+from api.endpoints.service.gg_parse import process_gg_parse
 from api.schemas import GraphCreate, GraphUpdate, GraphResponse
+from api.endpoints.service.storage_graph import storage_graph
 
 router = APIRouter()
 
 
-# TODO: 暂时使用内存管理流程图，测试成功之后添加内置的流程图提供数据库访问和存储流程图的功能
-graph_store: dict[str, Graph] = {}
-
-
-@router.post("/create/", response_model=GraphResponse, status_code=status.HTTP_201_CREATED)
-async def create_graph(graph: GraphCreate):
-    """创建新的流程图"""
-    if graph.name in [g.name for g in graph_store.values()]:
+@router.post("/upload_graph/", response_model=GraphResponse, status_code=status.HTTP_200_OK)
+async def upload_graph(file: UploadFile = File(...)):
+    """
+    上传 GG 文件，服务器将其解析为 Graph 并进行存储
+    返回上传的流转图的基本数据：id、name、description、node_count、edge_count
+    """
+    # 读取上传的文件内容
+    content = await file.read()
+    try:
+        # 处理流程图
+        graphs = process_gg_parse(content.decode("utf-8"))
+        # 储存流程图
+        await storage_graph(graphs)
+        return GraphResponse(code=200, message="上传成功", result=[
+            GraphResult.from_graph(graph)
+            for graph in graphs
+        ])
+    except Exception as e:
         return GraphResponse(
             code=400,
-            message=f"流程图 {graph.name} 已存在",
+            message=str(e),
             succeed=False
         )
-    new_graph = Graph(
-        name=graph.name,
-        description=graph.description
-    )
-    graph_store[new_graph.id] = new_graph
-    return GraphResponse.from_graph(new_graph)
 
 
-@router.get("/query/", response_model=GraphResponse)
-async def list_graphs(name: Optional[str] = None):
-    """查询流程图列表（支持按名称筛选）"""
-    graphs = [GraphResult.from_graph(g) for g in graph_store.values() if name and name in g.name]
-    return GraphResponse(result=graphs)
-
-
-@router.get("/get/{graph_id}", response_model=GraphResponse)
+@router.get("/get_graph/{graph_id}", response_model=GraphResponse, status_code=status.HTTP_200_OK)
 async def get_graph(graph_id: str):
-    """获取单个流程图详情"""
-    if graph_id not in graph_store:
-        return GraphResponse(
-            code=404,
-            message=f"流程图 {graph_id} 不存在",
-            succeed=False
-        )
-    return GraphResponse.from_graph(graph_store[graph_id])
-
-
-@router.put("/update/{graph_id}", response_model=GraphResponse)
-async def update_graph(graph_id: str, graph_update: GraphUpdate):
-    """更新流程图信息"""
-    if graph_id not in graph_store:
-        return GraphResponse(
-            code=404,
-            message=f"流程图 {graph_id} 不存在",
-            succeed=False
-        )
-    graph = graph_store[graph_id]
-    update_data = graph_update.model_dump(exclude_unset=True)
-    for key, value in update_data.items():
-        setattr(graph, key, value)
-    return GraphResponse.from_graph(graph)
-
-
-@router.post("/delete/{graph_id}", response_model=GraphResponse, status_code=status.HTTP_200_OK)
-async def delete_graph(graph_id: str):
-    """删除流程图"""
-    if graph_id not in graph_store:
-        return GraphResponse(
-            code=404,
-            message=f"流程图 {graph_id} 不存在",
-            succeed=False
-        )
-    del graph_store[graph_id]
-    return GraphResponse(message=f"删除流程图 {graph_id} 成功")
+    """
+    获取指定流程图
+    """
+    pass

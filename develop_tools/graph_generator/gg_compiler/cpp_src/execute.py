@@ -5,7 +5,7 @@ import sys
 from typing import List, Optional
 
 from newrcc.CConsole import colorfulText
-from newrcc.CColor import TextColor, Decoration
+from newrcc.CColor import TextColor, Decoration, RESET
 
 # 路径和变量配置
 CMAKE_PATH = r"D:\soft\Clion\CLion-2024.2.3\bin\cmake\win\x64\bin\cmake.exe"
@@ -104,10 +104,16 @@ def run_application():
     if not os.path.exists(EXECUTABLE_PATH):
         error(f"可执行文件不存在: {EXECUTABLE_PATH}")
 
-    log(f"运行应用程序: {EXECUTABLE_PATH}")
+    args = sys.argv[1:]
+    if len(args) == 0:
+        log("请输入参数:", TextColor.YELLOW)
+        args = [arg.strip(' ') for arg in input(f"<<< {TextColor.YELLOW}").split(' ') if len(arg) > 0]
+        print(end=RESET)
+
+    log(f"运行应用程序: {EXECUTABLE_PATH} {' '.join(args)}")
 
     # 运行主程序
-    exe_cmd = [EXECUTABLE_PATH] + sys.argv[1:]
+    exe_cmd = [EXECUTABLE_PATH, *args]
     run_command(exe_cmd)
 
 

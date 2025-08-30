@@ -106,7 +106,7 @@ namespace core {
     }
 
     TokenType Token::parseType() const {
-        // ´¦Àí¿ÕÖµÇé¿ö
+        // å¤„ç†ç©ºå€¼æƒ…å†µ
         if (value.empty()) {
             return TokenType::TOKEN_UNDEFINED;
         }
@@ -116,7 +116,7 @@ namespace core {
         if (value == GG_TOKEN_STREAM_START) {
             return TokenType::TOKEN_STREAM_START;
         }
-        // ÓÅÏÈ¼ì²éÌØÊâ¸ñÊ½£¨×Ö·û¡¢×Ö·û´®¡¢Êı×Ö£©
+        // ä¼˜å…ˆæ£€æŸ¥ç‰¹æ®Šæ ¼å¼ï¼ˆå­—ç¬¦ã€å­—ç¬¦ä¸²ã€æ•°å­—ï¼‰
         if (utils::StringManager::isCharFormat(value)) {
             return TokenType::TOKEN_CHAR;
         }
@@ -137,31 +137,31 @@ namespace core {
             }
             return TokenType::TOKEN_UNDEFINED;
         }
-        // ÔÚÓ³Éä±íÖĞ²éÕÒ£¬ÕÒµ½Ôò·µ»Ø¶ÔÓ¦ÀàĞÍ£¬·ñÔò·µ»Ø±êÊ¶·û»òÎ´¶¨Òå
+        // åœ¨æ˜ å°„è¡¨ä¸­æŸ¥æ‰¾ï¼Œæ‰¾åˆ°åˆ™è¿”å›å¯¹åº”ç±»å‹ï¼Œå¦åˆ™è¿”å›æ ‡è¯†ç¬¦æˆ–æœªå®šä¹‰
         if (const auto it = tokenMap.find(value); it != tokenMap.end()) {
             return it->second;
         }
-        // ¼ì²éÊÇ·ñÊÇ¹Ø¼ü×Ö
+        // æ£€æŸ¥æ˜¯å¦æ˜¯å…³é”®å­—
         if (base::KEYWORDS.contains(value)) {
             return TokenType::TOKEN_KEYWORD;
         }
-        // ¼ì²éÊÇ·ñÊÇ·Ö¸ô·û
+        // æ£€æŸ¥æ˜¯å¦æ˜¯åˆ†éš”ç¬¦
         if (base::DELIMITERS.contains(value)) {
             return TokenType::TOKEN_DELIMITER;
         }
-        // ¼ì²éÊÇ·ñÊÇ·¶Î§·û
+        // æ£€æŸ¥æ˜¯å¦æ˜¯èŒƒå›´ç¬¦
         if (base::RANGERS.contains(value)) {
             return TokenType::TOKEN_RANGER;
         }
-        // ¼ì²éÊÇ·ñÊÇ²Ù×÷·û
+        // æ£€æŸ¥æ˜¯å¦æ˜¯æ“ä½œç¬¦
         if (base::OPERATORS.contains(value)) {
             return TokenType::TOKEN_OPERATOR;
         }
-        // ¼ì²éÊÇ·ñÊÇ±êÇ©
+        // æ£€æŸ¥æ˜¯å¦æ˜¯æ ‡ç­¾
         if (base::DESCRIBE_LABELS.contains(value)){
             return TokenType::TOKEN_LABEL;
         }
-        // ÈôÎ´Æ¥Åäµ½¹Ø¼ü×Ö»ò·ûºÅ£¬Ôò¼ì²éÊÇ·ñÊÇºÏ·¨±êÊ¶·û
+        // è‹¥æœªåŒ¹é…åˆ°å…³é”®å­—æˆ–ç¬¦å·ï¼Œåˆ™æ£€æŸ¥æ˜¯å¦æ˜¯åˆæ³•æ ‡è¯†ç¬¦
         if (utils::isValidIdentifier(value)) {
             return TokenType::TOKEN_IDENTIFIER;
         }

@@ -1,28 +1,34 @@
 import logging
 from abc import ABC, abstractmethod
-from typing import List, Dict, Any, Optional, Union
+from typing import List, Dict, Any, Optional, Union, Callable
 
 from pydantic import BaseModel
 
-from data_flow.result import ExecuteResult, DefaultExecuteResult
 from data_flow.node import Node, NodeConfig
-from data_flow.enum_data import BuiltinNodeType, DataType
 from data_flow.execution_context import ExecutionContext
+from data_flow.enum_data import BuiltinNodeType, DataType
+from data_flow.result import ExecuteResult, DefaultExecuteResult
 
 
 class NodeExecutor(ABC):
     """节点执行器抽象基类，所有具体节点执行器需继承此类并实现抽象方法"""
 
-    def __init__(self, node, context):
+    def __init__(self, node, context,
+                 input_processor: Optional[Callable] = None):
         """
         初始化节点执行器
+
         :param node: 要执行的节点
         :param context: 执行上下文
+        :param input_processor: 输入数据预处理器
         """
         self.node: Node = node
         self.context: ExecutionContext = context
         if self.node and not self.node.config:
             self.node.config = self.get_node_config(self.context)
+        self.input_processor = input_processor or (
+            self.node.get_config("input_processor") if self.node.config else None) \
+                               or self.default_input_processor
         NodeExecutor._validate_node(self)  # 验证节点是否符合执行器要求
 
     def _validate_node(self):
@@ -123,6 +129,10 @@ class NodeExecutor(ABC):
         raise NotImplementedError("子类必须实现 get_node_config 方法")
 
     def get_input_data(self, port_id: Union[List[str], str] = None):
+        """处理并获取输入数据，指定端口ID获取指定的端口数据，否则获取全部数据，并预处理输入数据"""
+        return self.process_input_data(self._get_input_data(port_id))
+
+    def _get_input_data(self, port_id: Union[List[str], str] = None):
         """处理并获取输入数据，指定端口ID获取指定的端口数据，否则获取全部数据"""
         # 获取所有输入数据配置
         input_data = self.node.get_config("data.input")
@@ -189,3 +199,11 @@ class NodeExecutor(ABC):
             success=success,
             **kwargs
         )
+
+    def process_input_data(self, input_port_datas, **kwargs):
+        """处理输入数据"""
+        return self.input_processor(input_port_datas, self=self, **kwargs)
+
+    @staticmethod
+    def default_input_processor(input_port_datas, **kwargs):
+        return input_port_datas

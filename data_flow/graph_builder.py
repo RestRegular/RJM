@@ -154,20 +154,29 @@ class GraphBuilder:
         logger.info(f"数据库写入节点创建完成: {str(node)}")
         return node
 
-    def db_read_node(self, name: str, outputs: List[Port],
+    def db_read_node(self,
+                     name: str,
+                     inputs: List[Port],
+                     outputs: List[Port],
                      db_conn: DBConnectionConfig,
                      port_query_mapping: Dict[str, str],
                      batch_size: int = 1000, description: str = "",
-                     is_start: bool = False, is_end: bool = False) -> Node:
+                     is_start: bool = False, is_end: bool = False,
+                     **more_configs) -> Node:
         logger.info(f"开始创建数据库读取节点: {name}")
-        logger.debug(f"输出端口数量: {len(outputs)}，数据库配置: {db_conn}，批次大小: {batch_size}")
+        logger.debug(f"输入端口数量: {len(inputs)}，输出端口数量: {len(outputs)}，数据库配置: {db_conn}，批次大小: {batch_size}")
 
-        node = self.node(name, BuiltinNodeType.DB_READ, [], outputs,
-                         DBReadConfig(
-                            batch_size=batch_size,
-                            db_conn=db_conn,
-                            port_query_mapping=port_query_mapping),
-                         description=description, is_start=is_start, is_end=is_end)
+        node = self.node(
+            name,
+            BuiltinNodeType.DB_READ,
+            inputs, outputs,
+            DBReadConfig(
+                batch_size=batch_size,
+                db_conn=db_conn,
+                port_query_mapping=port_query_mapping,
+                **more_configs
+            ),
+            description=description, is_start=is_start, is_end=is_end)
         logger.info(f"数据库读取节点创建完成: {str(node)}")
         return node
 
@@ -241,7 +250,7 @@ class GraphBuilder:
             type=ntype,
             inputs=inputs,
             outputs=outputs,
-            config=config,
+            config=config or NodeConfig(),
             description=description,
             is_start=is_start,
             is_end=is_end

@@ -6,11 +6,12 @@ import logging
 from pydantic import BaseModel
 
 from data_flow import *
-from data_flow.result import ExecuteResult
 from data_flow.node import Node
+from data_flow.result import Result
+from utils.log_system import get_logger
+from data_flow.result import ExecuteResult
 from data_flow.graph import Graph, GraphError
 from data_flow.execution_context import ExecutionContext
-from utils.log_system import get_logger
 
 logger = get_logger(__name__)
 
@@ -246,3 +247,6 @@ class GraphExecutor:
 
         logger.debug(f"结果数据构建完成，包含 {len(result)} 个节点")
         return result if mode == 'python' else json.dumps(result)
+
+    def get_node_result(self, node_id: str) -> Result:
+        return self.graph.get_node_result(node_id)

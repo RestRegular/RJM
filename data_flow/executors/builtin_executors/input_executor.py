@@ -55,9 +55,9 @@ class InputNodeExecutor(NodeExecutor):
 
         return self.generate_default_execute_result(result_data=data)
 
-    def _default_data_provider(self) -> Any:
+    def _default_data_provider(self, **kwargs) -> Any:
         """默认数据提供器，可被外部提供的函数覆盖"""
-        return []
+        return kwargs.get("context").initial_data
 
     def _validate_node(self) -> None:
         """验证输入节点的特殊要求：不应有输入端口"""

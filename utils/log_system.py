@@ -93,6 +93,34 @@ class ConsoleHandler(logging.Handler):
         return result
 
 
+class LoggerPro(logging.Logger):
+    def __init__(self,
+        name: str,
+        log_level: Literal['notset', 'debug', 'info', 'warn', 'warning', 'error', 'fatal', 'critical'] = 'notset',
+        to_console: bool = True,
+        log_file: Optional[str] = None,
+        colorful_log: bool = True
+    ):
+        super().__init__(name)
+        self.log_level = log_level
+        self.to_console = to_console
+        self.log_file = log_file
+        self.colorful_log = colorful_log
+
+    @staticmethod
+    def improve_self(self,
+                     log_level: Literal[
+                         'notset', 'debug', 'info', 'warn', 'warning', 'error', 'fatal', 'critical'] = 'notset',
+                     to_console: bool = True,
+                     log_file: Optional[str] = None,
+                     colorful_log: bool = True
+    ):
+        self.log_level = log_level
+        self.to_console = to_console
+        self.log_file = log_file
+        self.colorful_log = colorful_log
+
+
 def get_logger(
         name: str,
         log_level: Literal['notset', 'debug', 'info', 'warn', 'warning', 'error', 'fatal', 'critical'] = 'notset',
@@ -111,6 +139,10 @@ def get_logger(
     log_level = log_level_mapping.get(log_level, logging.INFO)
 
     logger = logging.getLogger(name)
+    logger.__class__ = LoggerPro
+
+    LoggerPro.improve_self(logger, log_level, to_console, log_file, colorful_log)
+
     logger.setLevel(log_level)
 
     if to_console:

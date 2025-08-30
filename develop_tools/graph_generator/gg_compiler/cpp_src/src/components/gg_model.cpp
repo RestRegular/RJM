@@ -373,7 +373,7 @@ namespace model
         auto [outputCode, outputIds] = processPorts(m_outputPorts);
 
         // 构建配置字符串
-        const std::string configStr = getConfig().empty() ? "None" : getConfig();
+        const std::string configStr = getConfig().empty() ? "" : getConfig();
 
         // 组合最终结果
         std::string resultCode = inputCode + outputCode;
@@ -382,7 +382,7 @@ namespace model
             + "\", type=\"" + getNodeType()
             + "\", inputs=[" + inputIds
             + "], outputs=[" + outputIds
-            + "], config=" + configStr + ")\n";
+            + "]" + (configStr.empty() ? "" : ", config=" + configStr) + ")\n";
         return resultCode;
     }
 
@@ -873,7 +873,7 @@ namespace model
         {
             resultCode.append(edge->buildCode(builderIndent));
         }
-        resultCode.append("\t").append(builderIndent + ".build()\n");
+        resultCode.append("\t").append(builderIndent + " = " + builderIndent + ".build()\n");
         return resultCode;
     }
 

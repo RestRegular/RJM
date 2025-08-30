@@ -43,10 +43,12 @@ class DBReadConfig(NodeConfig):
 
     def __init__(self, db_conn: DBConnectionConfig,
                  port_query_mapping: Dict[str, str],
-                 batch_size: int = 1000, **kwargs):
+                 batch_size: int = 1000,
+                 **kwargs):
         super().__init__(db_conn=db_conn,
                          port_query_mapping=port_query_mapping,
-                         batch_size=batch_size, **kwargs)
+                         batch_size=batch_size,
+                         **kwargs)
 
 
 @NodeExecutorFactory.register_executor
@@ -56,15 +58,14 @@ class DBReadExecutor(NodeExecutor):
     logger = get_logger(f"{__name__}.DBReadExecutor")
 
     async def execute(self, **kwargs) -> ExecuteResult:
-        self.process_args(** kwargs)
+        self.process_args(**kwargs)
+        _ = self.get_input_data()
 
-        node: Node = self.node
         results: Dict[str, List[Any]] = {}
 
         # 获取数据库连接配置和端口-查询映射关系
-        db_read_config: DBReadConfig = node.config
-        db_conn: DBConnectionConfig = db_read_config.db_conn
-        port_query_mapping: Dict[str, str] = db_read_config.port_query_mapping
+        db_conn: DBConnectionConfig = self.node.get_config("db_conn")
+        port_query_mapping: Dict[str, str] = self.node.get_config("port_query_mapping")
 
         # 验证必要配置
         if not db_conn or not port_query_mapping:

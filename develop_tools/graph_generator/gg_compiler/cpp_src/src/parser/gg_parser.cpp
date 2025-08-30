@@ -151,7 +151,7 @@ namespace parser
 
     void Parser::consumeNextNewLine()
     {
-        // È·±£ÏÂÒ»¸ö token ²»ÊÇ TOKEN_NEWLINE
+        // ç¡®ä¿ä¸‹ä¸€ä¸ª token ä¸æ˜¯ TOKEN_NEWLINE
         while (hasNext() && nextIs(TokenType::TOKEN_NEWLINE)) nextOne();
     }
 
@@ -183,7 +183,7 @@ namespace parser
     std::deque<std::shared_ptr<Token>> Parser::extractRangerTokens()
     {
         std::deque<std::shared_ptr<Token>> result {};
-        // ¼ì²éµ±Ç°tokenÊÇ·ñÊÇ·¶Î§¿ªÊ¼±ê¼Ç
+        // æ£€æŸ¥å½“å‰tokenæ˜¯å¦æ˜¯èŒƒå›´å¼€å§‹æ ‡è®°
         if (const auto &it = rangerTokenMap.find(currentTokenType());
             it != rangerTokenMap.end())
         {
@@ -192,50 +192,50 @@ namespace parser
             typeStack.push(rangeEndType);
             while (hasNext() && !typeStack.empty())
             {
-                // ÒÆ¶¯µ½ÏÂÒ»¸ötoken
+                // ç§»åŠ¨åˆ°ä¸‹ä¸€ä¸ªtoken
                 nextOne();
-                // ¼ì²éµ±Ç°tokenÊÇ·ñÊÇ·¶Î§½áÊø±ê¼Ç
+                // æ£€æŸ¥å½“å‰tokenæ˜¯å¦æ˜¯èŒƒå›´ç»“æŸæ ‡è®°
                 if (rangerEndTokenSet.contains(currentTokenType()))
                 {
                     if (typeStack.top() == currentTokenType())
                     {
-                        // Æ¥Åäµ½¶ÔÓ¦µÄ½áÊø±ê¼Ç£¬µ¯³öÕ»¶¥
+                        // åŒ¹é…åˆ°å¯¹åº”çš„ç»“æŸæ ‡è®°ï¼Œå¼¹å‡ºæ ˆé¡¶
                         typeStack.pop();
-                        // Èç¹ûÕ»²»Îª¿Õ£¬ËµÃ÷»¹ÔÚÇ¶Ì×·¶Î§ÄÚ£¬½«½áÊø±ê¼Ç¼ÓÈë½á¹û
+                        // å¦‚æœæ ˆä¸ä¸ºç©ºï¼Œè¯´æ˜è¿˜åœ¨åµŒå¥—èŒƒå›´å†…ï¼Œå°†ç»“æŸæ ‡è®°åŠ å…¥ç»“æœ
                         if (!typeStack.empty())
                         {
                             result.push_back(currentToken());
                         }
-                        // Èç¹ûÕ»Îª¿Õ£¬ËµÃ÷ÒÑ¾­ÕÒµ½×îÍâ²ãµÄ½áÊø±ê¼Ç
+                        // å¦‚æœæ ˆä¸ºç©ºï¼Œè¯´æ˜å·²ç»æ‰¾åˆ°æœ€å¤–å±‚çš„ç»“æŸæ ‡è®°
                         else
                         {
-                            // ÒÆ¶¯µ½ÏÂÒ»¸ötoken²¢·µ»Ø½á¹û
+                            // ç§»åŠ¨åˆ°ä¸‹ä¸€ä¸ªtokenå¹¶è¿”å›ç»“æœ
                             if (hasNext()) nextOne();
                             break;
                         }
                     }
                     else
                     {
-                        // ²»Æ¥ÅäµÄ½áÊø±ê¼Ç£¬Å×³ö´íÎó
+                        // ä¸åŒ¹é…çš„ç»“æŸæ ‡è®°ï¼ŒæŠ›å‡ºé”™è¯¯
                         throw std::runtime_error("Parser::extractRangerTokens(): Mismatched range tokens. Expected: " +
                                                getTokenTypeName(typeStack.top()) +
                                                ", but found: " + getTokenTypeName(currentTokenType()));
                     }
-                } // ¼ì²éµ±Ç°tokenÊÇ·ñÊÇÁíÒ»¸ö·¶Î§¿ªÊ¼±ê¼Ç
+                } // æ£€æŸ¥å½“å‰tokenæ˜¯å¦æ˜¯å¦ä¸€ä¸ªèŒƒå›´å¼€å§‹æ ‡è®°
                 else if (const auto &curIt = rangerTokenMap.find(currentTokenType());
                     curIt != rangerTokenMap.end())
                 {
-                    // Óöµ½ĞÂµÄ¿ªÊ¼±ê¼Ç£¬½«Æä¶ÔÓ¦µÄ½áÊø±ê¼ÇÑ¹ÈëÕ»
+                    // é‡åˆ°æ–°çš„å¼€å§‹æ ‡è®°ï¼Œå°†å…¶å¯¹åº”çš„ç»“æŸæ ‡è®°å‹å…¥æ ˆ
                     typeStack.push(curIt->second);
                     result.push_back(currentToken());
                 }
                 else
                 {
-                    // ÆÕÍ¨token£¬¼ÓÈë½á¹û
+                    // æ™®é€štokenï¼ŒåŠ å…¥ç»“æœ
                     result.push_back(currentToken());
                 }
             }
-            // Èç¹ûÑ­»·½áÊøµ«Õ»²»Îª¿Õ£¬ËµÃ÷ÓĞÎ´±ÕºÏµÄ·¶Î§±ê¼Ç
+            // å¦‚æœå¾ªç¯ç»“æŸä½†æ ˆä¸ä¸ºç©ºï¼Œè¯´æ˜æœ‰æœªé—­åˆçš„èŒƒå›´æ ‡è®°
             if (!typeStack.empty())
             {
                 throw std::runtime_error("Parser::extractRangerTokens(): Unclosed range token. Expected: " +
@@ -444,7 +444,7 @@ namespace parser
 
     void Parser::parseAsIdentDefinition()
     {
-        nextOne(); // Ìø¹ı token Á÷µÄÆğÊ¼±ê¼Ç
+        nextOne(); // è·³è¿‡ token æµçš„èµ·å§‹æ ‡è®°
         if (currentIsNot(TokenType::TOKEN_IDENTIFIER))
         {
             throw std::runtime_error("Parser::parseAsIdentDefinition() called when current token is not TOKEN_IDENTIFIER.");
@@ -525,7 +525,7 @@ namespace parser
         consumeCurrentNewLineAndNextOne();
         if (currentIsNot(TokenType::TOKEN_IDENTIFIER))
         {
-            throw std::runtime_error("Parser::parseAsNodeModel() - Ô¤ÆÚµ±Ç°ÁîÅÆÎª±êÊ¶·û(TOKEN identifier)£¬µ«Êµ¼ÊÎªÆäËûÀàĞÍ");
+            throw std::runtime_error("Parser::parseAsNodeModel() - é¢„æœŸå½“å‰ä»¤ç‰Œä¸ºæ ‡è¯†ç¬¦(TOKEN identifier)ï¼Œä½†å®é™…ä¸ºå…¶ä»–ç±»å‹");
         }
         const auto &identToken = currentToken();
         consumeCurrentNewLineAndNextOne();
@@ -547,8 +547,8 @@ namespace parser
             const auto &inputsValue = configManager.get("inputs");
             if (inputsValue->getType() != BaseValueType::LIST)
             {
-                throw std::runtime_error("Parser::parseAsNodeModel() - ½Úµã'" + nameValue->getStringValue() +
-                    "'µÄ'inputs'ÊôĞÔÔ¤ÆÚÎªÁĞ±íÀàĞÍ£¬µ«Êµ¼ÊÎªÆäËûÀàĞÍ");
+                throw std::runtime_error("Parser::parseAsNodeModel() - èŠ‚ç‚¹'" + nameValue->getStringValue() +
+                    "'çš„'inputs'å±æ€§é¢„æœŸä¸ºåˆ—è¡¨ç±»å‹ï¼Œä½†å®é™…ä¸ºå…¶ä»–ç±»å‹");
             }
             for (const auto &inputPortValue : inputsValue->getListValue())
             {
@@ -560,20 +560,20 @@ namespace parser
                         nodeModel->addInputPort(std::static_pointer_cast<GGPort>(inputPort));
                     } else
                     {
-                        throw std::runtime_error("Parser::parseAsNodeModel() - ½Úµã'" + nameValue->getStringValue() +
-                            "'µÄÊäÈë¶Ë¿Ú'" + inputPortValue->getStringValue() + "'²»´æÔÚ»ò²»ÊÇÓĞĞ§µÄ¶Ë¿ÚÀàĞÍ");
+                        throw std::runtime_error("Parser::parseAsNodeModel() - èŠ‚ç‚¹'" + nameValue->getStringValue() +
+                            "'çš„è¾“å…¥ç«¯å£'" + inputPortValue->getStringValue() + "'ä¸å­˜åœ¨æˆ–ä¸æ˜¯æœ‰æ•ˆçš„ç«¯å£ç±»å‹");
                     }
                 } else
                 {
-                    throw std::runtime_error("Parser::parseAsNodeModel() - ½Úµã'" + nameValue->getStringValue() +
-                        "'µÄ'inputs'ÁĞ±íÖĞ°üº¬·Ç±êÊ¶·ûÀàĞÍµÄÔªËØ");
+                    throw std::runtime_error("Parser::parseAsNodeModel() - èŠ‚ç‚¹'" + nameValue->getStringValue() +
+                        "'çš„'inputs'åˆ—è¡¨ä¸­åŒ…å«éæ ‡è¯†ç¬¦ç±»å‹çš„å…ƒç´ ");
                 }
             }
             const auto &outputsValue = configManager.get("outputs");
             if (outputsValue->getType() != BaseValueType::LIST)
             {
-                throw std::runtime_error("Parser::parseAsNodeModel() - ½Úµã'" + nameValue->getStringValue() +
-                    "'µÄ'outputs'ÊôĞÔÔ¤ÆÚÎªÁĞ±íÀàĞÍ£¬µ«Êµ¼ÊÎªÆäËûÀàĞÍ");
+                throw std::runtime_error("Parser::parseAsNodeModel() - èŠ‚ç‚¹'" + nameValue->getStringValue() +
+                    "'çš„'outputs'å±æ€§é¢„æœŸä¸ºåˆ—è¡¨ç±»å‹ï¼Œä½†å®é™…ä¸ºå…¶ä»–ç±»å‹");
             }
             for (const auto &outputPortValue : outputsValue->getListValue())
             {
@@ -585,13 +585,13 @@ namespace parser
                         nodeModel->addOutputPort(std::static_pointer_cast<GGPort>(outputPort));
                     } else
                     {
-                        throw std::runtime_error("Parser::parseAsNodeModel() - ½Úµã'" + nameValue->getStringValue() +
-                            "'µÄÊä³ö¶Ë¿Ú'" + outputPortValue->getStringValue() + "'²»´æÔÚ»ò²»ÊÇÓĞĞ§µÄ¶Ë¿ÚÀàĞÍ");
+                        throw std::runtime_error("Parser::parseAsNodeModel() - èŠ‚ç‚¹'" + nameValue->getStringValue() +
+                            "'çš„è¾“å‡ºç«¯å£'" + outputPortValue->getStringValue() + "'ä¸å­˜åœ¨æˆ–ä¸æ˜¯æœ‰æ•ˆçš„ç«¯å£ç±»å‹");
                     }
                 } else
                 {
-                    throw std::runtime_error("Parser::parseAsNodeModel() - ½Úµã'" + nameValue->getStringValue() +
-                        "'µÄ'outputs'ÁĞ±íÖĞ°üº¬·Ç±êÊ¶·ûÀàĞÍµÄÔªËØ");
+                    throw std::runtime_error("Parser::parseAsNodeModel() - èŠ‚ç‚¹'" + nameValue->getStringValue() +
+                        "'çš„'outputs'åˆ—è¡¨ä¸­åŒ…å«éæ ‡è¯†ç¬¦ç±»å‹çš„å…ƒç´ ");
                 }
             }
             if (const auto &configValue = configManager.get("config"))
@@ -602,7 +602,7 @@ namespace parser
         }
         else
         {
-            throw std::runtime_error("Parser::parseAsNodeModel() - Ô¤ÆÚµ±Ç°ÁîÅÆÎª×ó»¨À¨ºÅ'{'£¬µ«Êµ¼ÊÎªÆäËûÀàĞÍ");
+            throw std::runtime_error("Parser::parseAsNodeModel() - é¢„æœŸå½“å‰ä»¤ç‰Œä¸ºå·¦èŠ±æ‹¬å·'{'ï¼Œä½†å®é™…ä¸ºå…¶ä»–ç±»å‹");
         }
     }
 
@@ -612,25 +612,25 @@ namespace parser
         const auto &nodeValue = configManager.get(prefix + "_node");
         if (!nodeValue)
         {
-            throw std::runtime_error("Parser::parseAsNodeModel() - ÅäÖÃÏî'" + prefix + "'È±ÉÙ'node'ÊôĞÔ");
+            throw std::runtime_error("Parser::parseAsNodeModel() - é…ç½®é¡¹'" + prefix + "'ç¼ºå°‘'node'å±æ€§");
         }
         const auto &nodeModel = _componentManager.get(nodeValue->getStringValue());
         if (!nodeModel || nodeModel->getModelType() != ModelType::NODE)
         {
-            throw std::runtime_error("Parser::parseAsNodeModel() - ÅäÖÃÏî'" + prefix + "'µÄ'node'ÊôĞÔÖµ'" +
-                nodeValue->getStringValue() + "'²»´æÔÚ»ò²»ÊÇÓĞĞ§µÄ½ÚµãÀàĞÍ");
+            throw std::runtime_error("Parser::parseAsNodeModel() - é…ç½®é¡¹'" + prefix + "'çš„'node'å±æ€§å€¼'" +
+                nodeValue->getStringValue() + "'ä¸å­˜åœ¨æˆ–ä¸æ˜¯æœ‰æ•ˆçš„èŠ‚ç‚¹ç±»å‹");
         }
         const auto &nodeComponent = std::static_pointer_cast<GGNode>(nodeModel);
         const auto &portValue = configManager.get(prefix + "_port");
         if (!portValue)
         {
-            throw std::runtime_error("Parser::parseAsNodeModel() - ÅäÖÃÏî'" + prefix + "'È±ÉÙ'port'ÊôĞÔ");
+            throw std::runtime_error("Parser::parseAsNodeModel() - é…ç½®é¡¹'" + prefix + "'ç¼ºå°‘'port'å±æ€§");
         }
         const auto &portModel = _componentManager.get(portValue->getStringValue());
         if (!portModel || portModel->getModelType() != ModelType::PORT)
         {
-            throw std::runtime_error("Parser::parseAsNodeModel() - ÅäÖÃÏî'" + prefix + "'µÄ'port'ÊôĞÔÖµ'" +
-                portValue->getStringValue() + "'²»´æÔÚ»ò²»ÊÇÓĞĞ§µÄ¶Ë¿ÚÀàĞÍ");
+            throw std::runtime_error("Parser::parseAsNodeModel() - é…ç½®é¡¹'" + prefix + "'çš„'port'å±æ€§å€¼'" +
+                portValue->getStringValue() + "'ä¸å­˜åœ¨æˆ–ä¸æ˜¯æœ‰æ•ˆçš„ç«¯å£ç±»å‹");
         }
         const auto &portComponent = std::static_pointer_cast<GGPort>(portModel);
         return std::make_pair(nodeComponent, portComponent);
@@ -641,7 +641,7 @@ namespace parser
         consumeNextNewLineAndNextOne();
         if (currentIsNot(TokenType::TOKEN_IDENTIFIER))
         {
-            throw std::runtime_error("Parser::parseAsNodeModel() - Ô¤ÆÚµ±Ç°ÁîÅÆÎª±êÊ¶·û(TOKEN identifier)£¬µ«Êµ¼ÊÎªÆäËûÀàĞÍ");
+            throw std::runtime_error("Parser::parseAsNodeModel() - é¢„æœŸå½“å‰ä»¤ç‰Œä¸ºæ ‡è¯†ç¬¦(TOKEN identifier)ï¼Œä½†å®é™…ä¸ºå…¶ä»–ç±»å‹");
         }
         const auto &identToken = currentToken();
         consumeNextNewLineAndNextOne();
@@ -655,9 +655,9 @@ namespace parser
 
             const auto &conditionValue = configManager.get("condition");
 
-            if (conditionValue->getType() != BaseValueType::RAW_DATA)
+            if (conditionValue && conditionValue->getType() != BaseValueType::RAW_DATA)
             {
-                throw std::runtime_error("Parser::parseAsNodeModel() - ÅäÖÃÏî'condition'ÊôĞÔÖµÔ¤ÆÚÎª×Ö·û´®ÀàĞÍ£¬µ«Êµ¼ÊÎªÆäËûÀàĞÍ");
+                throw std::runtime_error("Parser::parseAsNodeModel() - é…ç½®é¡¹'condition'å±æ€§å€¼é¢„æœŸä¸ºå­—ç¬¦ä¸²ç±»å‹ï¼Œä½†å®é™…ä¸ºå…¶ä»–ç±»å‹");
             }
             const auto &enableValue = configManager.get("enable",
                 BaseValue{BaseValueType::LITERAL, "true"});
@@ -666,11 +666,11 @@ namespace parser
 
             const auto &edgeModel = std::make_shared<GGEdge>(
             identToken->getValue(), sourceNode, sourcePort->getId(), targetNode, targetPort->getId(),
-            conditionValue->getStringValue(), enableValue->getStringValue() == "true", descValue->getStringValue());
+            conditionValue ? conditionValue->getStringValue() : "None", enableValue->getStringValue() == "true", descValue->getStringValue());
             _componentManager.addComponent(identToken->getValue(), edgeModel);
         } else
         {
-            throw std::runtime_error("Parser::parseAsNodeModel() - Ô¤ÆÚµ±Ç°ÁîÅÆÎª×ó»¨À¨ºÅ'{'£¬µ«Êµ¼ÊÎªÆäËûÀàĞÍ");
+            throw std::runtime_error("Parser::parseAsNodeModel() - é¢„æœŸå½“å‰ä»¤ç‰Œä¸ºå·¦èŠ±æ‹¬å·'{'ï¼Œä½†å®é™…ä¸ºå…¶ä»–ç±»å‹");
         }
     }
 
@@ -679,13 +679,13 @@ namespace parser
         consumeNextNewLineAndNextOne();
         if (currentIsNot(TokenType::TOKEN_IDENTIFIER))
         {
-            throw std::runtime_error("Parser::parseAsNodeModel() - Ô¤ÆÚµ±Ç°ÁîÅÆÎª±êÊ¶·û(TOKEN identifier)£¬µ«Êµ¼ÊÎªÆäËûÀàĞÍ");
+            throw std::runtime_error("Parser::parseAsNodeModel() - é¢„æœŸå½“å‰ä»¤ç‰Œä¸ºæ ‡è¯†ç¬¦(TOKEN identifier)ï¼Œä½†å®é™…ä¸ºå…¶ä»–ç±»å‹");
         }
         const auto &identToken = currentToken();
         consumeNextNewLineAndNextOne();
         if (!currentIs(TokenType::TOKEN_LBRACE))
         {
-            throw std::runtime_error("Parser::parseAsNodeModel() - Ô¤ÆÚµ±Ç°ÁîÅÆÎª×ó»¨À¨ºÅ'{'£¬µ«Êµ¼ÊÎªÆäËûÀàĞÍ");
+            throw std::runtime_error("Parser::parseAsNodeModel() - é¢„æœŸå½“å‰ä»¤ç‰Œä¸ºå·¦èŠ±æ‹¬å·'{'ï¼Œä½†å®é™…ä¸ºå…¶ä»–ç±»å‹");
         }
         const auto &configRangerTokens = extractRangerTokens();
         Parser configParser (configRangerTokens);
@@ -695,12 +695,12 @@ namespace parser
         const auto &nodesValue = configManager.get("nodes");
         if (!nodesValue || nodesValue->getType() != BaseValueType::LIST)
         {
-            throw std::runtime_error("Parser::parseAsNodeModel() - ÅäÖÃÏî'nodes'ÊôĞÔÖµÔ¤ÆÚÎªÁĞ±íÀàĞÍ£¬µ«Êµ¼ÊÎªÆäËûÀàĞÍ");
+            throw std::runtime_error("Parser::parseAsNodeModel() - é…ç½®é¡¹'nodes'å±æ€§å€¼é¢„æœŸä¸ºåˆ—è¡¨ç±»å‹ï¼Œä½†å®é™…ä¸ºå…¶ä»–ç±»å‹");
         }
         const auto &edgesValue = configManager.get("edges");
         if (!edgesValue || edgesValue->getType() != BaseValueType::LIST)
         {
-            throw std::runtime_error("Parser::parseAsNodeModel() - ÅäÖÃÏî'edges'ÊôĞÔÖµÔ¤ÆÚÎªÁĞ±íÀàĞÍ£¬µ«Êµ¼ÊÎªÆäËûÀàĞÍ");
+            throw std::runtime_error("Parser::parseAsNodeModel() - é…ç½®é¡¹'edges'å±æ€§å€¼é¢„æœŸä¸ºåˆ—è¡¨ç±»å‹ï¼Œä½†å®é™…ä¸ºå…¶ä»–ç±»å‹");
         }
         const auto &descValue = configManager.get("desc", BaseValue{BaseValueType::LITERAL, ""});
         const auto &graphModel = std::make_shared<GGGraph>(nameValue->getStringValue(),
@@ -709,12 +709,12 @@ namespace parser
         {
             if (nodeValue->getType() != BaseValueType::IDENTIFIER)
             {
-                throw std::runtime_error("Parser::parseAsNodeModel() - ÅäÖÃÏî'nodes'ÊôĞÔÖµÔ¤ÆÚÎª±êÊ¶·ûÀàĞÍ£¬µ«Êµ¼ÊÎªÆäËûÀàĞÍ");
+                throw std::runtime_error("Parser::parseAsNodeModel() - é…ç½®é¡¹'nodes'å±æ€§å€¼é¢„æœŸä¸ºæ ‡è¯†ç¬¦ç±»å‹ï¼Œä½†å®é™…ä¸ºå…¶ä»–ç±»å‹");
             }
             const auto &nodeModel = _componentManager.get(nodeValue->getStringValue());
             if (!nodeModel || nodeModel->getModelType() != ModelType::NODE)
             {
-                throw std::runtime_error("Parser::parseAsNodeModel() - ÅäÖÃÏî'nodes'ÊôĞÔÖµ'" + nodeValue->getStringValue() + "'²»´æÔÚ»ò²»ÊÇÓĞĞ§µÄ½ÚµãÀàĞÍ");
+                throw std::runtime_error("Parser::parseAsNodeModel() - é…ç½®é¡¹'nodes'å±æ€§å€¼'" + nodeValue->getStringValue() + "'ä¸å­˜åœ¨æˆ–ä¸æ˜¯æœ‰æ•ˆçš„èŠ‚ç‚¹ç±»å‹");
             }
             graphModel->addNode(std::static_pointer_cast<GGNode>(nodeModel));
         }
@@ -722,12 +722,12 @@ namespace parser
         {
             if (edgeValue->getType() != BaseValueType::IDENTIFIER)
             {
-                throw std::runtime_error("Parser::parseAsNodeModel() - ÅäÖÃÏî'edges'ÊôĞÔÖµÔ¤ÆÚÎª±êÊ¶·ûÀàĞÍ£¬µ«Êµ¼ÊÎªÆäËûÀàĞÍ");
+                throw std::runtime_error("Parser::parseAsNodeModel() - é…ç½®é¡¹'edges'å±æ€§å€¼é¢„æœŸä¸ºæ ‡è¯†ç¬¦ç±»å‹ï¼Œä½†å®é™…ä¸ºå…¶ä»–ç±»å‹");
             }
             const auto &edgeModel = _componentManager.get(edgeValue->getStringValue());
             if (!edgeModel || edgeModel->getModelType() != ModelType::EDGE)
             {
-                throw std::runtime_error("Parser::parseAsNodeModel() - ÅäÖÃÏî'edges'ÊôĞÔÖµ'" + edgeValue->getStringValue() + "'²»´æÔÚ»ò²»ÊÇÓĞĞ§µÄ±ßÀàĞÍ");
+                throw std::runtime_error("Parser::parseAsNodeModel() - é…ç½®é¡¹'edges'å±æ€§å€¼'" + edgeValue->getStringValue() + "'ä¸å­˜åœ¨æˆ–ä¸æ˜¯æœ‰æ•ˆçš„è¾¹ç±»å‹");
             }
             graphModel->addEdge(std::static_pointer_cast<GGEdge>(edgeModel));
         }
@@ -762,7 +762,7 @@ namespace parser
 
     BaseDataManager Parser::parseAsConfigScope()
     {
-        nextOne(); // Ìø¹ı token Á÷µÄ¿ªÊ¼±ê¼Ç
+        nextOne(); // è·³è¿‡ token æµçš„å¼€å§‹æ ‡è®°
         BaseDataManager configManager{};
         while (hasNext())
         {
@@ -833,9 +833,10 @@ namespace parser
             consumeNextNewLineAndNextOne();
             const auto &listItemValue = extractBaseValue();
             listItems.push_back(listItemValue);
+            consumeNextNewLine();
             if (hasNext())
             {
-                consumeNextNewLineAndNextOne();
+                nextOne();
                 if (currentIsNot(TokenType::TOKEN_COMMA))
                 {
                     throw std::runtime_error("Parser::parseAsListScope() called when current token is not TOKEN_COMMA.");

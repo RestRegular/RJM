@@ -241,7 +241,7 @@ def create_import_flow_graph_by_graph_builder() -> Graph:
     )
 
     # 定义所有端口
-    graph_raw_data = builder.port("graph_raw_data", "图数据", DataType.DICT)
+    graph_target_id = builder.port("graph_target_id", "指定的流转图数据", DataType.LIST)
     graph_base_info = builder.port("graph_base_info", "图基本信息", DataType.LIST)
     graph_node_info = builder.port("graph_node_info", "图节点信息", DataType.LIST)
     graph_edge_info = builder.port("graph_edge_info", "图边信息", DataType.LIST)
@@ -253,23 +253,48 @@ def create_import_flow_graph_by_graph_builder() -> Graph:
     import_result = builder.port("import_result", "导入结果", DataType.ANY)
 
     # 创建节点
+    # 获取指定流转图ID数据节点
+    input_node = builder.input_node(
+        name="指定的流转图ID数据输入节点",
+        outputs=[graph_target_id],
+        description="获取指定流转图ID数据: List[str]",
+        is_start=True
+    )
     # 数据库读取节点
+    def db_read_input_processor(port_datas, self: DBReadExecutor, **kwargs):
+        # 需要根据输入的指定流转图ID数据生成查询语句
+        target_id_str = ', '.join([
+            f"'{graph_id}'"
+            for port_data in port_datas.values()
+            for graph_id in port_data
+        ])
+        graph_base_info_sql = "SELECT * FROM graph WHERE id IN (" + target_id_str + ")"
+        graph_node_info_sql = "SELECT * FROM graph_node WHERE graph_id IN (" + target_id_str + ")"
+        graph_edge_info_sql = "SELECT * FROM graph_edge WHERE graph_id IN (" + target_id_str + ")"
+        graph_node_config_info_sql = "SELECT * FROM graph_node_config"
+
+        port_query_mapping = {
+            graph_base_info.id: graph_base_info_sql,
+            graph_node_info.id: graph_node_info_sql,
+            graph_edge_info.id: graph_edge_info_sql,
+            graph_node_config_info.id: graph_node_config_info_sql
+        }
+        self.node.set_config("port_query_mapping", port_query_mapping)
+        return port_datas
+
     db_read_node = builder.db_read_node(
         name="图数据读取",
+        inputs=[graph_target_id],
         outputs=[graph_base_info, graph_node_info, graph_edge_info, graph_node_config_info],
         db_conn=DBConnectionConfig(
             password="197346285",
             dbname="data_flow",
             user="root"
         ),
-        port_query_mapping={
-            graph_base_info.id: "SELECT * FROM graph",
-            graph_node_info.id: "SELECT * FROM graph_node",
-            graph_edge_info.id: "SELECT * FROM graph_edge",
-            graph_node_config_info.id: "SELECT * FROM graph_node_config"
-        },
+        port_query_mapping={},
         description="从MySQL数据库读取图的基本信息、节点、边和配置数据",
-        is_start=True
+        is_start=True,
+        input_processor=db_read_input_processor
     )
 
     # 节点数据转换
@@ -332,7 +357,7 @@ def create_import_flow_graph_by_graph_builder() -> Graph:
                 name=base_info["name"],
                 description=base_info["description"],
                 status=base_info["status"]
-            ).add_node(*port_datas[node_objects.id]) \
+            ).add_nodes(*port_datas[node_objects.id]) \
                 .add_edge_list(port_datas[edge_objects.id])
             for base_info in port_datas[graph_base_info.id]
         ],
@@ -349,6 +374,7 @@ def create_import_flow_graph_by_graph_builder() -> Graph:
     )
 
     # 连接所有节点
+    builder.connect(input_node, graph_target_id, db_read_node, graph_target_id)
     builder.connect(db_read_node, graph_node_info, convert_nodes, graph_node_info)
     builder.connect(db_read_node, graph_node_config_info, convert_nodes, graph_node_config_info)
     builder.connect(db_read_node, graph_edge_info, convert_edges, graph_edge_info)
@@ -372,7 +398,14 @@ async def test_import_graph() -> tuple[GraphExecutor, Graph, List[Graph]]:
     graph = create_import_flow_graph_by_graph_builder()
 
     # 创建执行上下文
-    context = ExecutionContext(processing_graph=graph, debug=True, log_level=logging.DEBUG)
+    context = ExecutionContext(
+        initial_data=[
+            # "893e98f1-2c28-4f92-a1aa-9506652b611d",
+            "9b36d621-22b5-40c5-8c93-4adef31c0e24"
+        ],
+        debug=True,
+        log_level=logging.DEBUG
+    )
 
     # 创建执行器并执行
     executor = GraphExecutor(graph, context)

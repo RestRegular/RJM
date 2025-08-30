@@ -6,7 +6,6 @@ from typing import Any, Dict, Optional, List
 from pydantic import BaseModel, Field
 
 from data_flow.enum_data import ResultStatus
-from utils.data_visitor import DataVisitor, BaseData
 
 
 class Result(BaseModel, ABC):

@@ -59,5 +59,6 @@
 }}
 
 \ `# behind raw string
-if 'build_graphs' in globals() and callable(globals()["build_graphs"]):
-    build_graphs()` \
+if __name__ == '__main__':
+    if 'build_graphs' in globals() and callable(globals()["build_graphs"]):
+        build_graphs()` \

@@ -25,7 +25,7 @@ class Node(BaseModel):
     inputs: List[Port] = []  # 输入端口（接收上游节点数据）
     outputs: List[Port] = []  # 输出端口（向下游节点传递数据）
 
-    config: Optional[NodeConfig] = None  # 节点配置参数，以及后续执行数据存储
+    config: NodeConfig = NodeConfig()  # 节点配置参数，以及后续执行数据存储
     status: Union[NodeStatus, str] = NodeStatus.PENDING  # 节点运行状态
 
     # 运行时数据（执行后填充）

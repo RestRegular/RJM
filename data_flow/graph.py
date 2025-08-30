@@ -6,6 +6,7 @@ from pydantic import BaseModel, Field
 from data_flow.edge import Edge
 from data_flow.node import Node
 from data_flow.enum_data import GraphStatus
+from data_flow.result import Result
 
 
 class GraphError(BaseModel):
@@ -111,3 +112,6 @@ class Graph(BaseModel):
 
     def to_dict(self):
         return self.model_dump()
+
+    def get_node_result(self, node_id: str) -> Result:
+        return self.nodes[node_id].result
