@@ -1,15 +1,19 @@
 import asyncio
-from typing import Optional
 
-from data_flow import *
-from data_flow.node import Node
-from data_flow.port import Port
-from data_flow.enum_data import DataType
-from data_flow.graph import Graph
-from data_flow.edge import Edge
-from data_flow.execution_context import ExecutionContext
-from data_flow.graph_executor import GraphExecutor
+from data_flow.domain import *
+from data_flow.domain.edge import Edge
+from data_flow.domain.enum_data import DataType
+from data_flow.domain.execution_context import ExecutionContext
+from data_flow.domain.graph import Graph
+from data_flow.domain.graph_executor import GraphExecutor
+from data_flow.domain.node import Node
+from data_flow.domain.port import Port
 
+DB_CONN_CONFIG = DBConnectionConfig(
+    user="root",
+    password="197346285",
+    dbname="ai_chat"
+)
 
 async def test_db_flow():
     # 1. 创建数据库读取节点
@@ -19,12 +23,7 @@ async def test_db_flow():
         inputs=[],
         outputs=[Port(id="messages", name="AI数据", data_type=DataType.LIST)],
         config=DBReadConfig(
-            db_conn={
-                "host": "localhost",
-                "user": "root",
-                "password": "197346285",
-                "dbname": "ai_chat"
-            },
+            db_conn=DB_CONN_CONFIG,
             port_query_mapping={
                 "messages": "select * from messages"
             }
@@ -52,12 +51,7 @@ async def test_db_flow():
         inputs=[Port(id="filtered", name="待写入数据", data_type=DataType.LIST, required=True)],
         outputs=[Port(id="result", name="写入结果", data_type=DataType.NUMBER)],
         config=DBWriteConfig(
-            db_conn={
-                "host": "localhost",
-                "user": "root",
-                "password": "197346285",
-                "dbname": "ai_chat"
-            },
+            db_conn=DB_CONN_CONFIG,
             port_table_mapping={
                 "filtered": "ai_9_messages"
             },

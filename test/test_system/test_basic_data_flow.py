@@ -1,13 +1,10 @@
 import asyncio
-import logging
-from typing import Dict
 
-from data_flow.node import Node, NodeConfig
-from data_flow.edge import Edge
-from data_flow.port import Port, DataType
-from data_flow.graph_executor import GraphExecutor, Graph, ExecutionContext
-from data_flow import *
-
+from data_flow.domain import *
+from data_flow.domain.edge import Edge
+from data_flow.domain.graph_executor import GraphExecutor, Graph
+from data_flow.domain.node import Node
+from data_flow.domain.port import Port
 
 # 1. 定义节点
 input_node = Node(
@@ -42,7 +39,7 @@ async def test():
         source_port_id="output",
         target_node_id=filter_node.id,
         target_port_id="input",
-        condition=lambda source_port_datas: len(datas) > 5
+        condition=lambda source_port_datas, **kwargs: len(source_port_datas) > 5
     ))
 
     context = ExecutionContext(

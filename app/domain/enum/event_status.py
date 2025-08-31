@@ -1,2 +1,0 @@
-COLLECTED = 'collected'
-PROCESSED = 'processed'

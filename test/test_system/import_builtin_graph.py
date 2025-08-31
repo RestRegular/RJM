@@ -1,17 +1,18 @@
 import json
 import logging
-from typing import Dict, List, Any
+from typing import List
 
-from data_flow import *
-from data_flow.graph import Graph
-from data_flow.graph_executor import GraphExecutor
-from data_flow.node import Node
-from data_flow.port import Port
-from data_flow.edge import Edge
-from data_flow.enum_data import BuiltinNodeType, DataType
-from data_flow.execution_context import ExecutionContext
-from data_flow.graph_builder import GraphBuilder
-from utils.data_visitor import DataVisitor
+from data_flow.domain import *
+from data_flow.domain.edge import Edge
+from data_flow.domain.enum_data import BuiltinNodeType, DataType
+from data_flow.domain.execution_context import ExecutionContext
+from data_flow.domain.graph import Graph
+from data_flow.domain.graph_builder import GraphBuilder
+from data_flow.domain.graph_executor import GraphExecutor
+from data_flow.domain.node import Node
+from data_flow.domain.node_config import NodeConfig
+from data_flow.domain.port import Port
+from data_flow.utils.data_visitor import DataVisitor
 
 
 def create_import_flow_graph() -> Graph:
@@ -43,7 +44,7 @@ def create_import_flow_graph() -> Graph:
 
     node_objects_port = Port(id="node_objects", name="节点对象列表", data_type=DataType.LIST, required=True)
     edge_objects_port = Port(id="edge_objects", name="边对象列表", data_type=DataType.LIST, required=True)
-    assembled_graph_port = Port(id="assembled_graph", name="组装后的图对象", data_type=DataType.OBJECT, required=True)
+    assembled_graph_port = Port(id="assembled_graph", name="组装后的图对象", data_type=DataType.ANY, required=True)
     import_result_port = Port(id="import_result", name="导入结果", data_type=DataType.ANY)
 
     # 2. 创建节点

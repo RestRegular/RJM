@@ -4,7 +4,7 @@ from test.test_api import *
 
 
 def main():
-    with open("../test_resource/new_graph.gg", "r", encoding="utf-8") as f:
+    with open("./resources/new_graph.gg", "r", encoding="utf-8") as f:
         files = {
             "file": ("new_graph.gg", f)
         }
