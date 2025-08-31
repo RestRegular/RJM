@@ -1,0 +1,7 @@
+Node{id='id6', name='id5', type=[NodeType: filter], isStart=false, inputs=[input], outputs=[passed]}
+Graph{id='id8', name='数据处理流程图', desc='数据处理流程图描述', nodes=[id5,id3], edges=[id7]}
+Node{id='id4', name='id3', type=[NodeType: input], isStart=true, inputs=[], outputs=[output]}
+Port{id='passed', name='通过数据', type=ANY, required=false}
+Port{id='input', name='输入数据', type=ANY, required=true}
+Edge{id='id7', name='input_filter_edge', source=id3.output, target=id5.input, enable=true}
+Port{id='output', name='输出数据', type=ANY, required=false}

@@ -1,0 +1,93 @@
+/*
+ * 注释
+ * Component expressions:
+ * Port: (port_name{
+ *           id=port_id,
+ *           name=port_name,
+ *           data_type=list,
+ *           required=true
+ *       })
+ * Node: [node_name{
+ *           name=node_name,
+ *           type=input,
+ *           inputs=[],
+ *           outputs=[port1, port2, port3],
+ *           is_start=true,
+ *           desc="This is a description.",
+ *           config="..."
+ *       }]
+ * Edge:
+ *      <edge_name{
+ *           source=node1_name.input_port1,
+ *           target=node2_name.output_port1,
+ *           enable=True,
+ *           condition="lambda datas, **kwargs: True"
+ *      }>
+ * Graph:
+ *      {graph_name{
+ *          nodes=[node1, node2, node3],
+ *          edges=[edge1, edge2, edge3],
+ *          desc="This is a graph description."
+ *      }}
+ *
+ * `#ident=...;`: 自定义标识符，后续可通过 `@ident` 引用
+ * `@node`: 通过标识符引用节点
+ * `@node.config`: 引用节点的配置
+ * `@node->port`: 引用节点的端口
+ */
+
+#output_port_name=输出数据;
+
+(output_port{
+    id=output,
+    name=@output_port_name,
+    data_type=list
+})
+
+(input_port{
+    id=input,
+    name=输入数据,
+    data_type=list,
+    required=true
+})
+
+(passed_port{
+    id=passed,
+    name=通过数据,
+    data_type=list
+})
+
+[input_node{
+    name=数据输入节点,
+    type=input,
+    inputs=[],
+    outputs=[@output_port]
+}]
+
+[filter_node{
+    name=数据过滤节点,
+    type=filter,
+    inputs=[@input_port],
+    outputs=[@passed_port],
+    config=`FilterNodeConfig(
+        filter_handler=lambda datas, **kwargs: [
+            item
+            for port_data in datas.values()
+            for item in port_data
+            if item['value'] > 5
+        ],
+    )`
+}]
+
+<input_filter_edge{
+    source=@input_node->output_port,
+    target=@filter_node->input_port,
+    condition="lambda datas, **kwargs: len(datas) > 5",
+}>
+
+{flow_graph{
+    name=数据处理流程图,
+    nodes=[input_node, filter_node],
+    edges=[input_filter_edge],
+    desc="数据处理流程图描述"
+}}

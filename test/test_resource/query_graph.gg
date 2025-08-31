@@ -1,0 +1,245 @@
+// 处理函数
+/ `
+def db_read_input_processor(port_datas, self: DBReadExecutor, **kwargs):
+    # 需要根据输入的指定流转图ID数据生成查询语句
+    target_id_str = ', '.join([
+        f"'{graph_id}'"
+        for port_data in port_datas.values()
+        for graph_id in port_data
+    ])
+    graph_base_info_sql = "SELECT * FROM graph WHERE id IN (" + target_id_str + ")"
+    graph_node_info_sql = "SELECT * FROM graph_node WHERE graph_id IN (" + target_id_str + ")"
+    graph_edge_info_sql = "SELECT * FROM graph_edge WHERE graph_id IN (" + target_id_str + ")"
+    graph_node_config_info_sql = "SELECT * FROM graph_node_config"
+
+    port_query_mapping = {
+        "base_info": graph_base_info_sql,
+        "node_info": graph_node_info_sql,
+        "edge_info": graph_edge_info_sql,
+        "node_config_info": graph_node_config_info_sql
+    }
+    self.node.set_config("port_query_mapping", port_query_mapping)
+    return port_datas
+` /
+
+// 首先创建端口
+(target_id_port{
+    id=target_id,
+    name=目标ID,
+    data_type=list,
+    required=true
+})
+(base_info_port{
+    id=node_info,
+    name=图节点信息,
+    data_type=list,
+    required=true
+})
+(node_info_port{
+    id=node_info,
+    name=图节点信息,
+    data_type=list,
+    required=true
+})
+(edge_info_port{
+    id=edge_info,
+    name=图边信息,
+    data_type=list,
+    required=true
+})
+(node_config_info_port{
+    id=node_config_info,
+    name=图节点配置信息,
+    data_type=list,
+    required=true
+})
+(node_objects_port{
+    id=node_objects,
+    name=节点对象列表,
+    data_type=list,
+    required=true
+})
+(edge_objects_port{
+    id=edge_objects,
+    name=边对象列表,
+    data_type=list,
+    required=true
+})
+(assembled_graph_port{
+    id=assembled_graph,
+    name=组装后的图对象,
+    data_type=object,
+    required=true
+})
+(import_result_port{
+    id=import_result,
+    name=导入结果,
+    data_type=any
+})
+// 创建节点
+[input_node{
+    name=输入节点,
+    type=input,
+    inputs=[],
+    outputs=[@target_id_port],
+    desc=输入节点，用于输入目标ID数据,
+    is_start=true
+}]
+[db_read_node{
+    name=图数据读取,
+    type=db_read,
+    inputs=[@target_id_port],
+    outputs=[
+        @base_info_port,
+        @node_info_port,
+        @edge_info_port,
+        @node_config_info_port
+    ],
+    config=`DBReadConfig(
+        db_conn=DBConnectionConfig(
+            password="197346285",
+            dbname="data_flow",
+            user="root"
+        ),
+        port_query_mapping={},
+        input_processor=db_read_input_processor
+    )`
+}]
+[convert_nodes{
+    name=节点转换,
+    type=mapper,
+    inputs=[@node_info_port, @node_config_info_port],
+    outputs=[@node_objects_port],
+    config=`MapperNodeConfig(
+        map_handler=lambda port_datas, **kwargs: [
+            Node(
+                id=node_info["id"],
+                name=node_info["name"],
+                type=node_info["type"],
+                is_start=node_info["is_start"],
+                is_end=node_info["is_end"],
+                inputs=[Port.model_validate(port) for port in json.loads(node_info["inputs"])],
+                outputs=[Port.model_validate(port) for port in json.loads(node_info["outputs"])],
+                description=node_info["description"],
+                status=node_info["status"],
+                error=node_info["error"],
+                config=NodeConfig(
+                    **{
+                        cfg["config_key"]: cfg["config_value"]
+                        for cfg in port_datas["node_config_info"]
+                        if cfg["node_id"] == node_info["id"]
+                    }
+                )
+            )
+            for node_info in port_datas["node_info"]
+        ]
+    )`,
+    desc=将节点信息转换为节点对象
+}]
+[convert_edges{
+    name=边转换,
+    type=mapper,
+    inputs=[@edge_info_port],
+    outputs=[@edge_objects_port],
+    config=`MapperNodeConfig(
+        map_handler=lambda port_datas, **kwargs: [
+            Edge(
+                id=edge_info["id"],
+                source_node_id=edge_info["source_node_id"],
+                source_port_id=edge_info["source_port_id"],
+                target_node_id=edge_info["target_node_id"],
+                target_port_id=edge_info["target_port_id"],
+                enabled=edge_info["enabled"]
+            )
+            for edge_info in port_datas["edge_info"]
+        ]
+    )`,
+    desc=将边信息转换为边对象
+}]
+[assemble_graph{
+    name=组装图,
+    type=mapper,
+    inputs=[@base_info_port, @node_objects_port, @edge_objects_port],
+    outputs=[@assembled_graph_port],
+    config=`MapperNodeConfig(
+        map_handler=lambda port_datas, **kwargs: [
+            Graph(
+                id=base_info["id"],
+                name=base_info["name"],
+                description=base_info["description"],
+                status=base_info["status"]
+            ).add_nodes(*port_datas["node_objects"]).add_edge_list(port_datas["edge_objects"])
+            for base_info in port_datas["base_info"]
+        ]
+    )`,
+    desc=将图信息转换为图对象
+}]
+[output_node{
+    name=输出节点,
+    type=output,
+    inputs=[@assembled_graph_port],
+    outputs=[@import_result_port],
+    desc=输出节点，用于输出导入结果,
+    is_end=true
+}]
+// 创建连接
+<input_to_db_read{
+    source=@input_node->target_id_port,
+    target=@db_read_node->target_id_port
+}>
+<db_read_to_convert_nodes_1{
+    source=@db_read_node->node_info_port,
+    target=@convert_nodes->node_info_port
+}>
+<db_read_to_convert_nodes_2{
+    source=@db_read_node->node_config_info_port,
+    target=@convert_nodes->node_config_info_port
+}>
+<db_read_to_convert_edges{
+    source=@db_read_node->edge_info_port,
+    target=@convert_edges->edge_info_port
+}>
+<db_read_to_assemble_graph{
+    source=@db_read_node->base_info_port,
+    target=@assemble_graph->base_info_port
+}>
+<convert_nodes_to_assemble_graph{
+    source=@convert_nodes->node_objects_port,
+    target=@assemble_graph->node_objects_port
+}>
+<convert_edges_to_assemble_graph{
+    source=@convert_edges->edge_objects_port,
+    target=@assemble_graph->edge_objects_port
+}>
+<assemble_graph_to_output{
+    source=@assemble_graph->assembled_graph_port,
+    target=@output_node->assembled_graph_port
+}>
+// 创建流转图
+{query_graph{
+    name=查询图,
+    nodes=[
+        @input_node,
+        @db_read_node,
+        @convert_nodes,
+        @convert_edges,
+        @assemble_graph,
+        @output_node
+    ],
+    edges=[
+        @input_to_db_read,
+        @db_read_to_convert_nodes_1,
+        @db_read_to_convert_nodes_2,
+        @db_read_to_convert_edges,
+        @db_read_to_assemble_graph,
+        @convert_nodes_to_assemble_graph,
+        @convert_edges_to_assemble_graph,
+        @assemble_graph_to_output
+    ],
+    desc=从Mysql数据库中查询流转图
+}}
+
+\ `
+if __name__ == "__main__":
+    build_graphs()
+` \

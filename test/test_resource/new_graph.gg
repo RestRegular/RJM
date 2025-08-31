@@ -1,0 +1,64 @@
+/ `# front raw string` /
+
+#output_port_name=输出数据;
+
+(output_port{
+    id=output,
+    name=@output_port_name,
+    data_type=list
+})
+
+(input_port{
+    id=input,
+    name=输入数据,
+    data_type=list,
+    required=true
+})
+
+(passed_port{
+    id=passed,
+    name=通过数据,
+    data_type=list
+})
+
+[input_node{
+    name=数据输入节点,
+    type=input,
+    inputs=[],
+    outputs=[@output_port],
+    is_start=true
+}]
+
+[filter_node{
+    name=数据过滤节点,
+    type=filter,
+    inputs=[@input_port],
+    outputs=[@passed_port],
+    config=`FilterNodeConfig(
+        filter_handler=lambda datas, **kwargs: [
+            item
+            for port_data in datas.values()
+            for item in port_data
+            if item['value'] > 5
+        ],
+    )`,
+    is_end=true
+}]
+
+<input_filter_edge{
+    source=@input_node->output_port,
+    target=@filter_node->input_port,
+    condition=`lambda datas, **kwargs: len(datas) > 5`
+}>
+
+{flow_graph{
+    name=数据处理流程图,
+    nodes=[@input_node, @filter_node],
+    edges=[@input_filter_edge],
+    desc="数据处理流程图描述"
+}}
+
+\ `# behind raw string
+if __name__ == '__main__':
+    if 'build_graphs' in globals() and callable(globals()["build_graphs"]):
+        build_graphs()` \
