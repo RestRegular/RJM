@@ -1,0 +1,10 @@
+name: RJMEnv
+channels:
+  - defaults
+dependencies:
+  - python=3.12.4
+  - Django~=5.2.4
+  - djangorestframework~=3.16.0
+  - Faker~=37.4.2
+  - SQLAlchemy~=2.0.42
+  - PyDanTic~=2.11.7
