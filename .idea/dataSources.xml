@@ -15,5 +15,13 @@
       <jdbc-url>jdbc:mysql://localhost:3306/ai_chat</jdbc-url>
       <working-dir>$ProjectFileDir$</working-dir>
     </data-source>
+    <data-source source="LOCAL" name="@TencentDB" uuid="0860ef01-644c-46c9-89b0-4a01dfc48b6e">
+      <driver-ref>mysql.8</driver-ref>
+      <synchronize>true</synchronize>
+      <remarks>working database</remarks>
+      <jdbc-driver>com.mysql.cj.jdbc.Driver</jdbc-driver>
+      <jdbc-url>jdbc:mysql://sh-cdb-im8up7xq.sql.tencentcdb.com:63944</jdbc-url>
+      <working-dir>$ProjectFileDir$</working-dir>
+    </data-source>
   </component>
 </project>

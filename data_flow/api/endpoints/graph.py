@@ -1,9 +1,12 @@
+from typing import Union, List
+
 from fastapi import APIRouter, status, UploadFile, File
 
+from data_flow.api.endpoints.service.gg_parse import process_gg_parse
+from data_flow.api.endpoints.service.query_graphs import query_graphs
+from data_flow.api.endpoints.service.storage_graph import storage_graph
 from data_flow.api.results import GraphResult
 from data_flow.api.schemas import GraphResponse
-from data_flow.api.endpoints.service.gg_parse import process_gg_parse
-from data_flow.api.endpoints.service.storage_graph import storage_graph
 
 router = APIRouter()
 
@@ -33,9 +36,17 @@ async def upload_graph(file: UploadFile = File(...)):
         )
 
 
-@router.get("/get_graph/{graph_id}", response_model=GraphResponse, status_code=status.HTTP_200_OK)
-async def get_graph(graph_id: str):
+@router.post("/query_graph/", response_model=GraphResponse, status_code=status.HTTP_200_OK)
+async def query_graph(graph_ids: Union[str, List[str]]):
     """
-    获取指定流程图
+    查询指定 ID 的流转图
     """
-    pass
+    graphs = await query_graphs(graph_ids if isinstance(graph_ids, List) else [graph_ids])
+    return GraphResponse(
+        code=200,
+        message="查询成功",
+        result=[
+            GraphResult.from_graph(graph)
+            for graph in graphs
+        ]
+    )

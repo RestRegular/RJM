@@ -52,7 +52,7 @@ class Graph(BaseModel):
 
     def add_nodes(self, *nodes) -> 'Graph':
         """批量添加节点"""
-        return self.add_node_list(nodes)
+        return self.add_node_list(list(nodes))
 
     def get_node_by_id(self, node_id: str) -> Optional[Node]:
         """根据节点ID获取节点"""
@@ -115,3 +115,11 @@ class Graph(BaseModel):
 
     def get_node_result(self, node_id: str) -> Result:
         return self.nodes[node_id].result
+
+    def reset_status(self):
+        self.status = GraphStatus.PENDING
+        for node in self.nodes.values():
+            node.reset_status()
+        for edge in self.edges:
+            edge.reset_status()
+        self.errors = []

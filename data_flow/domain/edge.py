@@ -22,6 +22,9 @@ class Edge(BaseModel):
     # edge: 边本身（keyword）
     # condition lambda示例：lambda source_port_data, **kwargs: ...
 
+    def reset_status(self):
+        pass
+
     def __hash__(self):
         """用于边的去重判断"""
         return hash(f"{self.source_node_id}_{self.source_port_id}_{self.target_node_id}_{self.target_port_id}")

@@ -2,11 +2,14 @@
 这幅流转图用于将流转图序列化并存储于 mysql 数据库中
 """
 import json
+from typing import Optional
 
 from data_flow.domain import *
 from data_flow.domain.graph import Graph
 from data_flow.domain.enum_data import DataType
 from data_flow.domain.graph_builder import GraphBuilder
+
+storage_graph: Optional[Graph] = None
 
 
 def build_graph_for_storage_graph() -> Graph:
@@ -16,6 +19,12 @@ def build_graph_for_storage_graph() -> Graph:
     Returns:
         Graph: 配置好的用于存储流转图的流转图
     """
+    # global storage_graph
+    #
+    # if storage_graph:
+    #     storage_graph.reset_status()
+    #     return storage_graph
+
     builder = GraphBuilder(
         name="存储流转图",
         description="将流转图数据（节点、边、配置）保存到MySQL数据库"
@@ -135,20 +144,29 @@ def build_graph_for_storage_graph() -> Graph:
     )
 
     # 创建数据库写入节点
-    db_write_node = builder.db_write_node(
+    def db_write_input_data_processor(input_datas, self: DBWriteExecutor, **kwargs):
+        context_config = self.context.get_context("db_conn_config", None)
+        cur_config = self.node.get_config("db_conn")
+        self.node.set_config("db_conn", context_config or cur_config
+            if not cur_config
+            else cur_config)
+        return input_datas
+
+    db_write_node = builder.node(
         name="图数据入库",
+        ntype=BuiltinNodeType.DB_WRITE,
         inputs=[graph_base_info, graph_node_info, graph_node_config_info, graph_edge_info],
-        db_config=DBConnectionConfig(
-            password="197346285",
-            dbname="data_flow",
-            user="root"
+        outputs=[],
+        config=DBWriteConfig(
+            db_conn=None,
+            port_table_mapping={
+                graph_base_info.id: "graph",
+                graph_node_info.id: "graph_node",
+                graph_node_config_info.id: "graph_node_config",
+                graph_edge_info.id: "graph_edge"
+            },
+            input_processor=db_write_input_data_processor
         ),
-        port_table_mapping={
-            graph_base_info.id: "graph",
-            graph_node_info.id: "graph_node",
-            graph_node_config_info.id: "graph_node_config",
-            graph_edge_info.id: "graph_edge"
-        },
         description="将提取的图基本信息、节点信息、配置信息和边信息分别写入对应的数据表",
         is_end=True
     )
@@ -163,5 +181,7 @@ def build_graph_for_storage_graph() -> Graph:
     builder.connect(extract_node_info, graph_node_info, db_write_node, graph_node_info)
     builder.connect(extract_config_info, graph_node_config_info, db_write_node, graph_node_config_info)
     builder.connect(extract_edge_info, graph_edge_info, db_write_node, graph_edge_info)
+
+    # storage_graph = builder.build()
 
     return builder.build()

@@ -84,3 +84,8 @@ class Node(BaseModel):
 
     def __repr__(self):
         return self.__str__()
+
+    def reset_status(self):
+        self.status = NodeStatus.PENDING
+        self.error = None
+        self.result = None

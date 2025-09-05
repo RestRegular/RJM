@@ -1,5 +1,6 @@
 from typing import Union, List
 
+from data_flow.domain import *
 from data_flow.domain.graph import Graph
 from data_flow.utils.log_system import get_logger
 from data_flow.domain.graph_executor import GraphExecutor
@@ -18,8 +19,12 @@ async def storage_graph(graphs: Union[List[Graph], Graph]):
     graphs = [graphs] if not isinstance(graphs, list) else graphs
     logger = get_logger(__name__)
     work_graph = build_graph_for_storage_graph()
-    context = ExecutionContext(logger=logger, debug=True, initial_data=graphs)
+    context = ExecutionContext(
+        logger=logger,
+        debug=True,
+        initial_data=graphs,
+        db_conn_config=DBConnectionConfig.from_env())
     executor = GraphExecutor(work_graph, context)
     await executor.run()
     if len(work_graph.errors) > 0:
-        raise Exception('\n'.join(work_graph.errors))
+        raise Exception('\n'.join([str(error) for error in work_graph.errors]))

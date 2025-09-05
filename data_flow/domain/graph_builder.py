@@ -117,7 +117,7 @@ class GraphBuilder:
         return node
 
     def db_write_node(self, name: str, inputs: List[Port],
-                      db_config: DBConnectionConfig,
+                      db_config: Optional[DBConnectionConfig],
                       port_table_mapping: Dict[str, str],
                       default_table: str = "graph",
                       description: Optional[str] = None,

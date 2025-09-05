@@ -1,6 +1,6 @@
 <?xml version="1.0" encoding="UTF-8"?>
 <project version="4">
-  <component name="PublishConfigData" autoUpload="On explicit save action" serverName="Develop" confirmBeforeUploading="false" autoUploadExternalChanges="true">
+  <component name="PublishConfigData" serverName="Develop" confirmBeforeUploading="false">
     <option name="confirmBeforeUploading" value="false" />
     <serverData>
       <paths name="AiChatHost (aecafd1b-8a54-47c7-913c-05e12398550c)">
@@ -25,6 +25,5 @@
         </serverdata>
       </paths>
     </serverData>
-    <option name="myAutoUpload" value="ON_EXPLICIT_SAVE" />
   </component>
 </project>

@@ -1,7 +1,9 @@
+import os
 import logging
 from typing import Dict, Any, List, Optional
 
 import aiomysql
+from dotenv import load_dotenv
 from pydantic import BaseModel
 
 from data_flow.domain import ExecutionContext
@@ -11,6 +13,8 @@ from data_flow.domain.enum_data import BuiltinNodeType
 from data_flow.domain.node_executor import NodeExecutor
 from data_flow.domain.node_executor_factory import NodeExecutorFactory
 from data_flow.domain.result import DefaultExecuteResult, ExecuteResult
+
+load_dotenv(os.path.join(os.path.dirname(__file__), "..", "..", "..", ".env"))
 
 __all__ = [
     "DBReadConfig",
@@ -35,6 +39,18 @@ class DBConnectionConfig(BaseModel):
 
     def __repr__(self):
         return str(self)
+
+    @staticmethod
+    def from_env():
+        config = DBConnectionConfig(
+            host=os.getenv("DATABASE_HOST", "localhost"),
+            port=int(os.getenv("DATABASE_PORT", "3306")),
+            user=os.getenv("DATABASE_USER", "root"),
+            password=os.getenv("DATABASE_PASSWORD", "00000000"),
+            dbname=os.getenv("DATABASE_NAME", "dbname")
+        )
+        print(config)
+        return config
 
 
 class DBReadConfig(NodeConfig):
@@ -150,12 +166,12 @@ class DBReadExecutor(NodeExecutor):
 class DBWriteConfig(NodeConfig):
     """数据库写入节点配置"""
     default_table: str = ""  # 默认表名
-    db_conn: DBConnectionConfig  # 数据库连接信息
+    db_conn: Optional[DBConnectionConfig]  # 数据库连接信息
     batch_size: int = 1000  # 批量写入大小
     upsert_key: Optional[str] = None  # 用于upsert的关键字段
     port_table_mapping: Dict[str, str] = {}  # 输入端口与表名的映射
 
-    def __init__(self, db_conn: DBConnectionConfig,
+    def __init__(self, db_conn: Optional[DBConnectionConfig],
                  default_table: str = "", batch_size: int = 1000,
                  upsert_key: Optional[str] = None,
                  port_table_mapping: Dict[str, str] = None, **kwargs):
@@ -178,9 +194,9 @@ class DBWriteExecutor(NodeExecutor):
             self.log_validation_failed(error, "所有输入端口数据均为空")
             raise error
         # 获取配置
-        config = self.node.config
-        db_conn = config.db_conn
-        batch_size = config.batch_size or 100
+        db_conn = self.node.get_config("db_conn", DBConnectionConfig.from_env())
+        print(db_conn)
+        batch_size = self.node.get_config("batch_size", 100)
         # 建立数据库连接
         conn = None
         self.log_handle_start()
@@ -203,9 +219,9 @@ class DBWriteExecutor(NodeExecutor):
                         self.log_validation_failed(error, f"端口[{port_id}]的数据必须为非空列表: {str(data) + ('...' if len(str(data)) > 50 else '')}")
                         raise error
                     # 确定目标表名（优先使用映射，其次使用默认表名）
-                    table = config.port_table_mapping.get(port_id, None)
+                    table = self.node.get_config("port_table_mapping").get(port_id, None)
                     if not table:
-                        table  = config.default_table
+                        table  = self.node.get_config("default_table")
                         if not table:
                             error = ValueError(f"端口[{port_id}]未配置目标数据表且未指定默认数据表")
                             self.log_validation_failed(error, f"端口[{port_id}]未配置目标数据表且未指定默认数据表")
@@ -216,10 +232,10 @@ class DBWriteExecutor(NodeExecutor):
                     placeholders = ", ".join([f"%({k})s" for k in fields])
                     sql = f"INSERT INTO {table} ({', '.join(fields)}) VALUES ({placeholders})"
                     # 处理更新逻辑
-                    if config.upsert_key:
+                    if self.node.get_config("upsert_key"):
                         update_clause = ", ".join([
                             f"{k}=VALUES({k})" for k in fields
-                            if k != config.upsert_key
+                            if k != self.node.get_config("upsert_key")
                         ])
                         sql += f" ON DUPLICATE KEY UPDATE {update_clause}"
                     # 批量写入

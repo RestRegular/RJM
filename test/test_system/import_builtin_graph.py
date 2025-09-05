@@ -1,6 +1,13 @@
+import os
+import sys
 import json
 import logging
 from typing import List
+
+PROJECT_DIR = os.path.abspath(os.path.join(os.path.dirname(__file__), "..", ".."))
+
+if PROJECT_DIR not in sys.path:
+    sys.path.insert(0, PROJECT_DIR)
 
 from data_flow.domain import *
 from data_flow.domain.edge import Edge
@@ -61,11 +68,7 @@ def create_import_flow_graph() -> Graph:
             graph_node_config_info_port
         ],
         config=DBReadConfig(
-            db_conn=DBConnectionConfig(
-                password="197346285",
-                dbname="data_flow",
-                user="root"
-            ),
+            db_conn=DBConnectionConfig.from_env(),
             port_query_mapping={
                 graph_base_info_port.id: "SELECT * FROM graph",
                 graph_node_info_port.id: "SELECT * FROM graph_node",
@@ -281,6 +284,8 @@ def create_import_flow_graph_by_graph_builder() -> Graph:
             graph_node_config_info.id: graph_node_config_info_sql
         }
         self.node.set_config("port_query_mapping", port_query_mapping)
+        self.node.set_config("db_conn", self.context.get_context(
+            "db_conn_config", self.node.get_config("db_conn")))
         return port_datas
 
     db_read_node = builder.db_read_node(
@@ -299,12 +304,10 @@ def create_import_flow_graph_by_graph_builder() -> Graph:
     )
 
     # 节点数据转换
-    convert_nodes = builder.mapper_node(
-        name="节点数据转换",
-        inputs=[graph_node_info, graph_node_config_info],
-        outputs=[node_objects],
-        handler=lambda port_datas, **kwargs: [
-            Node(
+    def convert_nodes_handler(port_datas, **kwargs):
+        node_objs = {}
+        for node_info in port_datas[graph_node_info.id]:
+            node = Node(
                 id=node_info["id"],
                 name=node_info["name"],
                 type=node_info["type"],
@@ -323,8 +326,16 @@ def create_import_flow_graph_by_graph_builder() -> Graph:
                     }
                 )
             )
-            for node_info in port_datas[graph_node_info.id]
-        ],
+            if node_info["graph_id"] not in node_objs:
+                node_objs[node_info["graph_id"]] = []
+            node_objs[node_info["graph_id"]].append(node)  # type: List[Node]
+        return [{graph_id: nodes} for graph_id, nodes in node_objs.items()]
+
+    convert_nodes = builder.mapper_node(
+        name="节点数据转换",
+        inputs=[graph_node_info, graph_node_config_info],
+        outputs=[node_objects],
+        handler=convert_nodes_handler,
         description="将数据库中的节点记录转换为Node对象，并关联配置信息"
     )
 
@@ -348,20 +359,34 @@ def create_import_flow_graph_by_graph_builder() -> Graph:
     )
 
     # 图对象组装
-    assemble_graph = builder.mapper_node(
-        name="图对象组装",
-        inputs=[graph_base_info, node_objects, edge_objects],
-        outputs=[assembled_graph],
-        handler=lambda port_datas, **kwargs: [
-            Graph(
+    def assemble_graph_handler(port_datas, **kwargs):
+        node_objs = {
+            k: v
+            for node_obj in port_datas[node_objects.id]
+            for k, v in node_obj.items()
+        }
+        graphs = {}
+        for base_info in port_datas[graph_base_info.id]:
+            graph_nodes = node_objs[base_info["id"]]
+            graph_node_ids = {node.id for node in graph_nodes}
+            graph = Graph(
                 id=base_info["id"],
                 name=base_info["name"],
                 description=base_info["description"],
                 status=base_info["status"]
-            ).add_nodes(*port_datas[node_objects.id]) \
-                .add_edge_list(port_datas[edge_objects.id])
-            for base_info in port_datas[graph_base_info.id]
-        ],
+            ).add_node_list(graph_nodes) \
+                .add_edge_list([edge
+                                for edge in port_datas[edge_objects.id]
+                                if edge.source_node_id in graph_node_ids and \
+                                edge.target_node_id in graph_node_ids])
+            graphs[base_info["id"]] = graph
+        return [graph for graph in graphs.values()]
+
+    assemble_graph = builder.mapper_node(
+        name="图对象组装",
+        inputs=[graph_base_info, node_objects, edge_objects],
+        outputs=[assembled_graph],
+        handler=assemble_graph_handler,
         description="将图基本信息、节点对象和边对象组装成完整的Graph对象"
     )
 
@@ -401,11 +426,12 @@ async def test_import_graph() -> tuple[GraphExecutor, Graph, List[Graph]]:
     # 创建执行上下文
     context = ExecutionContext(
         initial_data=[
-            # "893e98f1-2c28-4f92-a1aa-9506652b611d",
+            "893e98f1-2c28-4f92-a1aa-9506652b611d",
             "9b36d621-22b5-40c5-8c93-4adef31c0e24"
         ],
         debug=True,
-        log_level=logging.DEBUG
+        log_level=logging.DEBUG,
+        db_cnn_config=DBConnectionConfig.from_env()
     )
 
     # 创建执行器并执行
