@@ -78,11 +78,11 @@ class EdgeResponse(Response):
 
 # 执行模型
 class ExecutionRequest(BaseModel):
-    start_node_ids: List[str]
-    run_async: bool = False
-    context_params: ExecutionContext = ExecutionContext(timeout=30, debug=False)  # 传递给ExecutionContext的参数
+    executing_graph_ids: List[str]
+    context_params: Dict[str, Any] = {}
+    result_visit_notation: Optional[str] = None
 
 
 class ExecutionResponse(Response):
-    result: Union[ExecutionResult, List[ExecutionResult], None] = None
+    result: Union[Dict[str, ExecutionResult], ExecutionResult, None] = None
 

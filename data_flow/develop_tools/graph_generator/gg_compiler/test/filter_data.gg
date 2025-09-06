@@ -1,0 +1,76 @@
+/ `def output_data_processor(port_datas, **kwargs):
+    print(f"[{', '.join([data for datas in port_datas.values() for data in datas])}]")
+    return port_datas
+    ` /
+
+(input_data_port{
+    id=input_data,
+    name=输入数据端口,
+    data_type=list
+})
+
+(filter_data_port{
+    id=filter_data,
+    name=过滤数据端口,
+    data_type=list
+})
+
+[input_data_node{
+    name=输入数据节点,
+    type=input,
+    inputs=[],
+    outputs=[@input_data_port],
+    config=`InputNodeConfig(
+        data_provider=lambda **kwargs: [1, 2, 3, 4, 5, 6, 7, 8, 9, 10]
+    )`,
+    is_start=true
+}]
+
+[filer_data_node{
+    name=过滤数据节点,
+    type=filter,
+    inputs=[@input_data_port],
+    outputs=[@filter_data_port],
+    config=`FilterNodeConfig(
+        filter_handler=lambda port_datas, **kwargs: [
+            data
+            for datas in port_datas
+            for data in datas
+            if data % 2 == 0
+        ]
+    )`
+}]
+
+[output_data_node{
+    name=输出数据节点,
+    type=output,
+    inputs=[@filter_data_port],
+    outputs=[],
+    config=`OutputNodeConfig(
+        data_processor=output_data_processor
+    )`
+}]
+
+<input_filter_edge{
+    source=@input_data_node->input_data_port,
+    target=@filer_data_node->input_data_port
+}>
+
+<filter_output_edge{
+    source=@filer_data_node->filter_data_port,
+    target=@output_data_node->filter_data_port
+}>
+
+{flow_graph{
+    name=数据过滤流程图,
+    nodes=[
+        @input_data_node,
+        @filer_data_node,
+        @output_data_node
+    ],
+    edges=[
+        @input_filter_edge,
+        @filter_output_edge
+    ],
+    desc=`数据过滤流程图`
+}}

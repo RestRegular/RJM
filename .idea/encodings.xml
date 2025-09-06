@@ -2,11 +2,16 @@
 <project version="4">
   <component name="Encoding">
     <file url="file://$PROJECT_DIR$/data_flow/.env" charset="UTF-8" />
+    <file url="file://$PROJECT_DIR$/data_flow/api/endpoints/execution.py" charset="UTF-8" />
     <file url="file://$PROJECT_DIR$/data_flow/api/endpoints/service/query_graphs.py" charset="UTF-8" />
     <file url="file://$PROJECT_DIR$/data_flow/develop_tools/graph_generator/gg_compiler/cpp_src/new_graph.gg" charset="UTF-8" />
+    <file url="file://$PROJECT_DIR$/data_flow/develop_tools/graph_generator/gg_compiler/test/filter_data.gg" charset="UTF-8" />
     <file url="file://$PROJECT_DIR$/data_flow/develop_tools/graph_generator/gg_compiler/test/new_graph.gg" charset="UTF-8" />
+    <file url="file://$PROJECT_DIR$/data_flow/develop_tools/graph_generator/gg_compiler/test/new_graph_1.gg" charset="UTF-8" />
     <file url="file://$PROJECT_DIR$/data_flow/requirements.txt" charset="UTF-8" />
+    <file url="file://$PROJECT_DIR$/test/test_api/resources/filter_data.gg" charset="UTF-8" />
     <file url="file://$PROJECT_DIR$/test/test_api/resources/new_graph.gg" charset="UTF-8" />
     <file url="file://$PROJECT_DIR$/test/test_api/resources/query_graph.gg" charset="UTF-8" />
+    <file url="remoteDeploymentFS://&lt;9c1a85df-dfc4-48e6-963c-181462a32545&gt;/data_flow/domain/graphs/graph_info.json" charset="UTF-8" />
   </component>
 </project>

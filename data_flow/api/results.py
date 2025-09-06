@@ -90,4 +90,4 @@ class EdgeResult(Result):
 class ExecutionResult(Result):
     execution_id: str
     status: Union[GraphStatus, str]
-    node_results: Optional[Dict[str, Dict[str, Any]]] = None
+    results: Optional[Dict[str, Any]] = None

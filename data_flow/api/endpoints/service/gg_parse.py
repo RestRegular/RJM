@@ -5,7 +5,7 @@ from typing import List
 
 from data_flow.domain.graph import Graph
 from data_flow.api.endpoints.service import *
-from data_flow.api.endpoints.service.dynamic_import_graph import dynamic_import_graph
+from data_flow.api.endpoints.service.graph_manager import GraphManager
 
 GG_EXECUTOR_PATH = "/Resume_Rag_Project/data_flow/develop_tools/graph_generator/gg_compiler/cpp_src/cmake-build-debug/GG"
 CACHE_DIR_PATH = os.path.join(os.path.dirname(__file__), "cache")
@@ -21,7 +21,7 @@ def delete_cache_files(*filepaths: str):
             os.remove(filepath)
 
 
-def process_gg_parse(content) -> List[Graph]:
+def process_gg_parse(content) -> Graph:
     # 保存 gg 内容到缓存文件
     os.makedirs(CACHE_DIR_PATH, exist_ok=True)
     gg_file = generate_new_gg_file_name()
@@ -36,9 +36,9 @@ def process_gg_parse(content) -> List[Graph]:
     try:
         subprocess.run(command, check=True)
     except subprocess.CalledProcessError as e:
-        raise Exception(f"命令执行错误: {e.stderr}") from e
+        raise Exception(f"命令执行错误: {e.stderr}\n{e.stdout}\n{e}") from e
 
-    graphs = dynamic_import_graph(gg_file)
+    graph = GraphManager.dynamic_import_graph_from_cache(gg_file, archive_save_path)
 
     delete_cache_files(gg_save_path, archive_save_path)
-    return graphs
+    return graph

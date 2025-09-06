@@ -1,5 +1,5 @@
 import uuid
-from typing import Optional, List, Dict
+from typing import Optional, List, Dict, Any
 
 from pydantic import BaseModel, Field
 
@@ -15,7 +15,7 @@ class GraphError(BaseModel):
 
 
 class Graph(BaseModel):
-    id: str = Field(default_factory=lambda :str(uuid.uuid4()))  # 图唯一标识
+    id: str = Field(default_factory=lambda :f"graph_{str(uuid.uuid4()).replace('-', '_')}")  # 图唯一标识
     name: str  # 图名称（如"用户行为数据处理流程"）
     description: Optional[str] = None  # 图描述
     nodes: Dict[str, Node] = {}  # 节点集合（键为节点ID）
@@ -100,7 +100,7 @@ class Graph(BaseModel):
 
     def add_edges(self, *edges) -> 'Graph':
         """添加多个边"""
-        return self.add_edge_list(edges)
+        return self.add_edge_list(list(edges))
 
     def get_downstream_edges(self, node_id: str) -> List[Edge]:
         """获取节点的下游边（从该节点出发的边）"""
@@ -112,6 +112,16 @@ class Graph(BaseModel):
 
     def to_dict(self):
         return self.model_dump()
+
+    def to_dict_info(self) -> Dict[str, Any]:
+        return {
+            "name": self.name,
+            "desc": self.description,
+            "node_count": len(self.nodes),
+            "edge_count": len(self.edges),
+            "start_node_ids": self.starts,
+            "end_node_ids": self.ends
+        }
 
     def get_node_result(self, node_id: str) -> Result:
         return self.nodes[node_id].result
