@@ -3,13 +3,15 @@ import json
 import logging
 from typing import Optional, List, Dict, Any, Literal, Union
 
-from data_flow.domain import *
-from data_flow.domain.execution_context import ExecutionContext
-from data_flow.domain.graph import Graph, GraphError
 from data_flow.domain.node import Node
-from data_flow.domain.result import ExecuteResult
+from data_flow.domain.enum_data import *
 from data_flow.domain.result import Result
 from data_flow.utils.log_system import get_logger
+from data_flow.domain.result import ExecutionResult
+from data_flow.domain.graph import Graph, GraphError
+from data_flow.domain.node_executor import NodeExecutor
+from data_flow.domain.execution_context import ExecutionContext
+from data_flow.domain.node_executor_factory import NodeExecutorFactory
 
 logger = get_logger(__name__)
 
@@ -18,7 +20,10 @@ class GraphExecutor:
     def __init__(self, graph: Graph, context: ExecutionContext):
         self.graph = graph
         self.context = context
+        self.context.set_context("__graph__", graph)
+        self.context.set_context("__executor__", self)
         logger.setLevel(self.context.log_level or logging.INFO)
+        self._execution_result: Optional[ExecutionResult] = None
 
     async def _get_upstream_data(self, node_id: str) -> Dict[str, Any]:
         """获取上游节点传递到当前节点的数据（按输入端口分组）"""
@@ -79,7 +84,7 @@ class GraphExecutor:
                 logger.debug(f"为节点 {node.id} 创建执行器")
                 node.executor = NodeExecutorFactory.create_executor(
                     node=node, context=self.context)
-                logger.debug(f"执行器创建完成: {type(node.executor).__name__}")
+                logger.debug(f"节点执行器创建完成: {type(node.executor).__name__}")
 
             # 获取上游数据
             logger.debug(f"获取节点 {node.id} 的上游数据")
@@ -111,7 +116,7 @@ class GraphExecutor:
         return node
 
     @staticmethod
-    async def _run_executor(executor: NodeExecutor, **kwargs) -> ExecuteResult:
+    async def _run_executor(executor: NodeExecutor, **kwargs) -> ExecutionResult:
         """
         运行执行器，支持同步和异步执行器
         如果执行器的execute方法是异步的，使用await；否则直接调用
@@ -140,6 +145,10 @@ class GraphExecutor:
     async def run(self, start_node_ids: Optional[List[str]] = None) -> Graph:
         """执行图"""
         logger.info(f"开始执行流程图: {str(self.graph)}")
+
+        if self.graph.status != GraphStatus.PENDING:
+            logger.warning(f"流程图 {self.graph.id} 已执行，重置流程图状态")
+            self.reset_status()
 
         start_node_ids = start_node_ids or self.graph.starts
         logger.debug(f"起始节点: {start_node_ids}")
@@ -230,9 +239,21 @@ class GraphExecutor:
         logger.debug(f"最终可达节点: {result}")
         return result
 
-    def get_node_results(self, mode: Union[Literal['json', 'python'], str] = 'python') -> Dict[str, Any]:
-        """获取节点执行结果（按节点ID分组）"""
+    def get_results(self, mode: Union[Literal['json', 'python'], str] = 'python') -> Dict[str, Any]:
+        """
+        获取执行器的执行结果
+
+        如果设置了 `execution_result`，那么会返回它
+
+        否则返回**所有节点**的执行结果
+        """
         logger.info(f"获取节点执行结果，模式: {mode}")
+
+        if self._execution_result:
+            logger.warning("已设置执行结果，返回执行结果")
+            return self._execution_result.model_dump(mode=mode)
+
+        logger.warning("未设置执行结果，返回所有节点的执行结果")
 
         result = {
             node_id: {
@@ -248,3 +269,13 @@ class GraphExecutor:
 
     def get_node_result(self, node_id: str) -> Result:
         return self.graph.get_node_result(node_id)
+
+    def set_execution_result(self, execution_result: ExecutionResult):
+        self._execution_result = execution_result
+
+    def reset_status(self):
+        self._execution_result = None
+        self.graph.reset_status(self.context)
+
+    def get_execution_result(self):
+        return self._execution_result

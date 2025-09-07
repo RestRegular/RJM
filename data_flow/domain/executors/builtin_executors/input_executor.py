@@ -1,7 +1,7 @@
 import logging
 from typing import Any, Callable
 
-from data_flow.domain.result import ExecuteResult
+from data_flow.domain.result import ExecutionResult
 from data_flow.utils.log_system import get_logger
 from data_flow.domain.node_config import NodeConfig
 from data_flow.domain.enum_data import BuiltinNodeType
@@ -33,7 +33,7 @@ class InputNodeExecutor(NodeExecutor):
         super().__init__(node, context)
         self.data_provider = data_provider
 
-    def execute(self, **kwargs) -> ExecuteResult:
+    def execute(self, **kwargs) -> ExecutionResult:
         self.process_args(**kwargs)
         self.data_provider = self.data_provider or self.node.get_config("data_provider") or self._default_data_provider
         input_data = self.get_input_data()

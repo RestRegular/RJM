@@ -6,13 +6,13 @@ import aiomysql
 from dotenv import load_dotenv
 from pydantic import BaseModel
 
-from data_flow.domain import ExecutionContext
 from data_flow.utils.log_system import get_logger
 from data_flow.domain.node_config import NodeConfig
 from data_flow.domain.enum_data import BuiltinNodeType
 from data_flow.domain.node_executor import NodeExecutor
+from data_flow.domain.execution_context import ExecutionContext
 from data_flow.domain.node_executor_factory import NodeExecutorFactory
-from data_flow.domain.result import DefaultExecuteResult, ExecuteResult
+from data_flow.domain.result import DefaultExecutionResult, ExecutionResult
 
 load_dotenv(os.path.join(os.path.dirname(__file__), "..", "..", "..", ".env"))
 
@@ -75,7 +75,7 @@ class DBReadExecutor(NodeExecutor):
 
     logger = get_logger(f"{__name__}.DBReadExecutor")
 
-    async def execute(self, **kwargs) -> ExecuteResult:
+    async def execute(self, **kwargs) -> ExecutionResult:
         self.process_args(**kwargs)
         _ = self.get_input_data()
 
@@ -126,10 +126,10 @@ class DBReadExecutor(NodeExecutor):
                             success=False,
                             error=f"端口 {port_id} 执行查询失败: {str(e)}"
                         )
-            return DefaultExecuteResult(
+            return DefaultExecutionResult(
                 node_id=self.node.id,
                 success=True,
-                output_data=results
+                result_data=results
             )
         except Exception as e:
             self.log_execution_failed(e, f"数据库连接或执行失败: {str(e)}")
@@ -186,7 +186,7 @@ class DBWriteExecutor(NodeExecutor):
 
     logger = get_logger(f"{__name__}.DBWriteExecutor")
 
-    async def execute(self, **kwargs) -> ExecuteResult:
+    async def execute(self, **kwargs) -> ExecutionResult:
         self.process_args(**kwargs)
         input_data: Dict[str, Any] = self.get_input_data()
         if not input_data:

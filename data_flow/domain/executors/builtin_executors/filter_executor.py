@@ -2,7 +2,7 @@ import logging
 from typing import Any, Callable
 from collections.abc import Iterable
 
-from data_flow.domain.result import ExecuteResult
+from data_flow.domain.result import ExecutionResult
 from data_flow.utils.log_system import get_logger
 from data_flow.domain.node_config import NodeConfig
 from data_flow.domain.enum_data import BuiltinNodeType
@@ -10,7 +10,10 @@ from data_flow.domain.node_executor import NodeExecutor
 from data_flow.domain.execution_context import ExecutionContext
 from data_flow.domain.node_executor_factory import NodeExecutorFactory
 
-__all__ = ["FilterNodeConfig", "FilterNodeExecutor"]
+__all__ = [
+    "FilterNodeConfig",
+    "FilterNodeExecutor"
+]
 
 logger = get_logger(__name__)
 
@@ -31,7 +34,7 @@ class FilterNodeExecutor(NodeExecutor):
         super().__init__(node, context)
         self.filter_handler = filter_handler
 
-    def execute(self, **kwargs) -> ExecuteResult:
+    def execute(self, **kwargs) -> ExecutionResult:
         """执行过滤逻辑"""
         self.process_args(validate=False, **kwargs)
         self.filter_handler = self.filter_handler or self.node.get_config("filter_handler")

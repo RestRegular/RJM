@@ -126,10 +126,10 @@ class Graph(BaseModel):
     def get_node_result(self, node_id: str) -> Result:
         return self.nodes[node_id].result
 
-    def reset_status(self):
+    def reset_status(self, context):
         self.status = GraphStatus.PENDING
         for node in self.nodes.values():
-            node.reset_status()
+            node.reset_status(context)
         for edge in self.edges:
             edge.reset_status()
         self.errors = []

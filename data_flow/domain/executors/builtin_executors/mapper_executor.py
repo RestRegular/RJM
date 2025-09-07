@@ -1,7 +1,7 @@
 import logging
 from typing import Any, Callable
 
-from data_flow.domain.result import ExecuteResult
+from data_flow.domain.result import ExecutionResult
 from data_flow.utils.log_system import get_logger
 from data_flow.domain.node_config import NodeConfig
 from data_flow.domain.enum_data import BuiltinNodeType
@@ -31,7 +31,7 @@ class MapperNodeExecutor(NodeExecutor):
         super().__init__(node, context)
         self.map_handler = map_handler
 
-    def execute(self, **kwargs) -> ExecuteResult:
+    def execute(self, **kwargs) -> ExecutionResult:
         self.process_args(**kwargs)
         input_data = self.get_input_data()
         self.map_handler = self.map_handler or self.node.get_config("map_handler")

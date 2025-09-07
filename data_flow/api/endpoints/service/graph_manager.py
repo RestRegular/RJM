@@ -50,7 +50,7 @@ class GraphManager:
         return graph
 
     @classmethod
-    def storage_graphs(cls, graph: Graph, filepath: str):
+    def store_graphs(cls, graph: Graph, filepath: str):
         with open(GRAPH_INFO_PATH, "w", encoding="utf-8") as f:
             cls._graph_storage[graph.id] = graph
             with open(os.path.join(GRAPH_DIR, f"{graph.id}.py"), "w", encoding="utf-8") as tf, \
@@ -66,7 +66,7 @@ class GraphManager:
 
         graph = cls._build_graph(importlib.import_module(f"data_flow.api.endpoints.service.cache.{graph_id}"))
 
-        cls.storage_graphs(graph, filepath)
+        cls.store_graphs(graph, filepath)
         return graph
 
     @classmethod
@@ -74,7 +74,7 @@ class GraphManager:
         if graph_id in cls._graph_storage:
             return cls.get_graph(graph_id)
         if not os.path.exists(os.path.join(GRAPH_DIR, f"{graph_id}.py")):
-            raise FileNotFoundError(f"Graph {graph_id} not found")
+            raise FileNotFoundError(f"Graph '{graph_id}' not found")
         graph = cls._build_graph(importlib.import_module(f"data_flow.domain.graphs.{graph_id}"))
         graph.id = graph_id
         cls._graph_storage[graph_id] = graph

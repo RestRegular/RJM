@@ -6,18 +6,17 @@ TODO: 请添加更详细的执行器描述
 author: {{ author }}
 date: {{ date }}
 """
-
 import logging
 from typing import Dict, Any, Callable
 
-from data_flow.node import Node
-from data_flow.node_config import NodeConfig
-from data_flow.enum_data import BuiltinNodeType
-from data_flow.node_executor import NodeExecutor
-from data_flow.node_executor_factory import NodeExecutorFactory
-from data_flow.execution_context import ExecutionContext
-from data_flow.result import ExecuteResult, DefaultExecuteResult
-from utils.log_system import get_logger
+from data_flow.domain.node import Node
+from data_flow.domain.node_config import NodeConfig
+from data_flow.domain.enum_data import BuiltinNodeType
+from data_flow.domain.node_executor import NodeExecutor
+from data_flow.domain.node_executor_factory import NodeExecutorFactory
+from data_flow.domain.execution_context import ExecutionContext
+from data_flow.domain.result import ExecuteResult, DefaultExecuteResult
+from data_flow.utils.log_system import get_logger
 
 __all__ = [
     "{{ config_class_name }}",
@@ -47,7 +46,7 @@ class {{ executor_class_name }}(NodeExecutor):
         self.{{ handler_attr }} = {{ handler_attr }}
 
     def execute(self, **kwargs) -> ExecuteResult:
-        self.process_args(**kwargs)
+        self.process_args(**kwargs, validate=False)
         self.{{ handler_attr }} = self.{{ handler_attr }} or self.node.get_config("{{ handler_attr }}")
         self._validate_node()
         input_data = self.get_input_data()

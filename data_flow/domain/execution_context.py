@@ -6,11 +6,18 @@ from pydantic import BaseModel, ConfigDict, field_validator
 
 from data_flow.utils.log_system import get_logger
 
-__all__ = ['ExecutionContext']
+__all__ = [
+    'ExecutionContext'
+]
 
 
 class ExecutionContext(BaseModel):
-    """执行上下文（传递全局参数，如超时时间、日志器等）"""
+    """
+    执行上下文（传递全局参数，如超时时间、日志器等）
+
+    log_level: int -> logger.DEBUG | logger.INFO...
+    initial_data: list -> [...]
+    """
     global_vars: Dict[str, Any] = {}  # 全局变量（可被所有节点访问）
 
     model_config = ConfigDict(

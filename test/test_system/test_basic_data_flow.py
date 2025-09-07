@@ -1,6 +1,8 @@
 import asyncio
 
-from data_flow.domain import *
+from data_flow.domain.executors.builtin_executors import *
+from data_flow.domain.enum_data import *
+from data_flow.domain.execution_context import ExecutionContext
 from data_flow.domain.edge import Edge
 from data_flow.domain.graph_executor import GraphExecutor, Graph
 from data_flow.domain.node import Node
@@ -58,7 +60,7 @@ def main():
 
     executor, result_graph = asyncio.run(test())
 
-    pprint(executor.get_node_results())
+    pprint(executor.get_results())
 
 
 if __name__ == '__main__':

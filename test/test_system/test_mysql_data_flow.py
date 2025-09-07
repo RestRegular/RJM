@@ -91,7 +91,7 @@ def main():
     executor, result = asyncio.run(test_db_flow())
     for error in result.errors:
         print(f"{result.get_node_by_id(error.node_id).name}: {error.error}")
-    print(executor.get_node_results())
+    print(executor.get_results())
     pass
 
 if __name__ == '__main__':

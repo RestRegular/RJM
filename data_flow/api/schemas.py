@@ -86,3 +86,6 @@ class ExecutionRequest(BaseModel):
 class ExecutionResponse(Response):
     result: Union[Dict[str, ExecutionResult], ExecutionResult, None] = None
 
+
+class ExecutorResponse(Response):
+    pass

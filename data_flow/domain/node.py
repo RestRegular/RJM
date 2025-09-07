@@ -85,7 +85,12 @@ class Node(BaseModel):
     def __repr__(self):
         return self.__str__()
 
-    def reset_status(self):
+    def reset_status(self, context):
         self.status = NodeStatus.PENDING
         self.error = None
         self.result = None
+        if self.executor:
+            if hasattr(self.executor, "reset_status") and callable(getattr(self.executor, "reset_status")):
+                self.executor.reset_status(context)
+            else:
+                raise AttributeError("Executor does not have a `reset_status` method")

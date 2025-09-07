@@ -84,17 +84,16 @@ def generate_executor(
 if __name__ == "__main__":
     # 生成一个转换节点示例（类似Mapper）
     generate_executor(
-        output_dir_path="./",
-        node_type_name="转换",
-        node_type="TRANSFORM",
-        executor_class_name="TransformNodeExecutor",
-        config_class_name="TransformNodeConfig",
-        handler_attr="transform_handler",
+        output_dir_path="./executors",
+        node_type_name="结果",
+        node_type="result",
+        executor_class_name="ResultNodeExecutor",
+        config_class_name="ResultNodeConfig",
+        handler_attr="result_handler",
         default_handler="lambda port_datas, **kwargs: port_datas",
-        executor_description="转换节点执行器，负责数据格式转换",
+        executor_description="负责将传输到此节点的数据作为整个流转图的执行结果保存到流转图的结果中",
         author="RestRegular",
         need_input_check=True,
         need_handler_check=True,
-        need_input_port_check=True,
-
+        need_input_port_check=True
     )

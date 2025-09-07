@@ -15,4 +15,4 @@ if __name__ == '__main__':
     context = ExecutionContext(initial_data=[1, 2, 3, 4, 5, 6, 7, 8, 9, 10])
     executor = GraphExecutor(graph, context)
     graph = asyncio.run(executor.run())
-    print(executor.get_node_results())
+    print(executor.get_results())

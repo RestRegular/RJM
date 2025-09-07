@@ -6,7 +6,7 @@ from data_flow.domain.node import Node
 from data_flow.domain.node_config import NodeConfig
 from data_flow.domain.execution_context import ExecutionContext
 from data_flow.domain.enum_data import BuiltinNodeType, DataType
-from data_flow.domain.result import ExecuteResult, DefaultExecuteResult
+from data_flow.domain.result import ExecutionResult, DefaultExecutionResult
 
 __all__ = [
     'NodeExecutor'
@@ -33,6 +33,12 @@ class NodeExecutor(ABC):
             self.node.get_config("input_processor") if self.node.config else None) \
                                or self.default_input_processor
         NodeExecutor._validate_node(self)  # 验证节点是否符合执行器要求
+
+    def reset_status(self, context):
+        self.context = context
+        if self.node and not self.node.config:
+            self.node.config = self.get_node_config(self.context)
+        NodeExecutor._validate_node(self)
 
     def _validate_node(self):
         """验证节点是否符合执行器要求"""
@@ -71,7 +77,7 @@ class NodeExecutor(ABC):
             self.log_execution_start()
 
     @abstractmethod
-    def execute(self, **kwargs) -> ExecuteResult:
+    def execute(self, **kwargs) -> ExecutionResult:
         """执行节点逻辑"""
         raise NotImplementedError("子类必须实现 execute 方法")
 
@@ -191,14 +197,14 @@ class NodeExecutor(ABC):
 
         return None  # 未找到有效数据
 
-    def generate_default_execute_result(self, result_data: Any = None, success: bool = True, **kwargs) -> DefaultExecuteResult:
+    def generate_default_execute_result(self, result_data: Any = None, success: bool = True, **kwargs) -> DefaultExecutionResult:
         """将执行结果分发给每个输出端口"""
         output_port_ids = [port.id for port in self.node.outputs] if len(self.node.outputs) > 0 else ["output"]
         if success:
             self.log_execution_succeed()
-        return DefaultExecuteResult(
+        return DefaultExecutionResult(
             node_id=self.node.id,
-            output_data={port_id: result_data for port_id in output_port_ids},
+            result_data={port_id: result_data for port_id in output_port_ids},
             success=success,
             **kwargs
         )
