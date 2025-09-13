@@ -57,4 +57,7 @@ def obtain_job_info(page_source: str = None) -> Dict[str, List[str]]:
 
 if __name__ == '__main__':
     with open("../resource/web.html", "r", encoding="utf-8") as f:
-        print(obtain_job_info(f.read()))
+        jobs = obtain_job_info(f.read())
+    import json
+    with open("../resource/job_infos.json", "w", encoding="utf-8") as f:
+        json.dump(jobs, f, ensure_ascii=False, indent=4)
