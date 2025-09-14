@@ -11,15 +11,17 @@
     <file url="file://$PROJECT_DIR$/data_flow/develop_tools/graph_generator/gg_compiler/test/new_graph.gg" charset="UTF-8" />
     <file url="file://$PROJECT_DIR$/data_flow/develop_tools/graph_generator/gg_compiler/test/new_graph_1.gg" charset="UTF-8" />
     <file url="file://$PROJECT_DIR$/data_simulation/data_resource_lib/generate_job_seeker_data.py" charset="UTF-8" />
-    <file url="file://$PROJECT_DIR$/data_simulation/data_resource_lib/job_seeker/extract_name_samples.py" charset="UTF-8" />
+    <file url="file://$PROJECT_DIR$/data_simulation/data_resource_lib/job_seeker/city_list_obtainer.py" charset="UTF-8" />
     <file url="file://$PROJECT_DIR$/data_simulation/data_resource_lib/job_seeker/extract_name_samples.py" charset="UTF-8" />
     <file url="file://$PROJECT_DIR$/data_simulation/data_resource_lib/job_seeker/job_info_obtainer.py" charset="UTF-8" />
     <file url="file://$PROJECT_DIR$/data_simulation/data_resource_lib/job_seeker/job_seeker_name_obtainer.py" charset="UTF-8" />
-    <file url="file://$PROJECT_DIR$/data_simulation/data_resource_lib/job_seeker/job_seeker_name_obtainer.py" charset="UTF-8" />
+    <file url="file://$PROJECT_DIR$/data_simulation/data_resource_lib/job_seeker/signature_obtainer.py" charset="UTF-8" />
+    <file url="file://$PROJECT_DIR$/data_simulation/data_resource_lib/resource/city_rank.json" charset="UTF-8" />
+    <file url="file://$PROJECT_DIR$/data_simulation/data_resource_lib/resource/job_details.json" charset="UTF-8" />
+    <file url="file://$PROJECT_DIR$/data_simulation/data_resource_lib/resource/tempfile_1757854151440.py" charset="UTF-8" />
     <file url="file://$PROJECT_DIR$/data_simulation/data_resource_lib/resource/web.html" charset="UTF-8" />
     <file url="file://$PROJECT_DIR$/data_simulation/data_resource_lib/test.py" charset="UTF-8" />
     <file url="file://$PROJECT_DIR$/data_simulation/utils/request_tool.py" charset="UTF-8" />
-    <file url="file://$PROJECT_DIR$/requirements.txt" charset="UTF-8" />
     <file url="file://$PROJECT_DIR$/requirements.txt" charset="UTF-8" />
     <file url="file://$PROJECT_DIR$/test/test_api/resources/filter_data.gg" charset="UTF-8" />
     <file url="file://$PROJECT_DIR$/test/test_api/resources/new_graph.gg" charset="UTF-8" />

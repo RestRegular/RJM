@@ -2,8 +2,11 @@
   <dictionary name="project">
     <words>
       <w>asctime</w>
+      <w>cchilds</w>
       <w>dirname</w>
       <w>levelname</w>
+      <w>pchild</w>
+      <w>pchilds</w>
     </words>
   </dictionary>
 </component>
