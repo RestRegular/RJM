@@ -3,12 +3,15 @@ import random
 import string
 from typing import Optional, List, Dict, Any
 
-from pinyin.pinyin import get as get_pinyin  # 导入pinyin库
+import pandas as pd
+from pinyin.pinyin import get as get_pinyin
 
 from data_simulation.data_resource_lib.job_seeker.city_list_obtainer import import_city_list
 from data_simulation.data_resource_lib.job_seeker.extract_name_samples import extract_name_samples
 from data_simulation.data_resource_lib.job_seeker.job_info_obtainer import import_job_info
 from data_simulation.data_resource_lib.job_seeker.signature_obtainer import import_signatures
+from data_simulation.data_resource_lib.job_seeker.universities_obtainer import import_universities
+from data_simulation.data_resource_lib.seeker_resume.education_experience_generator import generate_education_experience
 
 
 def import_city_rank_info() -> Dict[str, List[str]]:
@@ -20,6 +23,7 @@ JOB_INFOS = import_job_info()
 CITY_INFOS = import_city_list()
 SIGNATURES = import_signatures()
 CITY_RANK_INFOS = import_city_rank_info()
+UNIVERSITIES = import_universities()
 
 
 def generate_phone_number():
@@ -331,6 +335,37 @@ def generate_balance(
             return round(balance, 2)
 
 
+def random_select_school(city: str, df: pd.DataFrame = None) -> str:
+    """
+    从指定城市的指定办学层次中随机抽取一所学校
+
+    参数:
+        city: 城市名称
+        level: 办学层次（如"本科"）
+        df: 可选参数，已加载的大学数据DataFrame，如果为None则会调用import_universities()加载
+
+    返回:
+        随机选中的学校名称，如果没有找到符合条件的学校则返回空字符串
+    """
+    level = random.choice(["本科", "专科"])
+
+    # 如果没有提供DataFrame，则加载数据
+    if df is None:
+        df = import_universities()
+
+    # 筛选出符合条件的学校
+    filtered_schools = df[(df['所在地'] == city) & (df['办学层次'] == level)]
+
+    # 如果没有符合条件的学校，返回空字符串
+    if filtered_schools.empty:
+        return ""
+
+    # 随机选择一所学校
+    random_school = random.choice(filtered_schools['学校名称'].tolist())
+
+    return random_school
+
+
 def generate_job_seeker(seeker_count: int = 1000) -> List[Dict[str, Any]]:
     """生成指定数量的求职者数据"""
     # 确保总样本数为偶数，保证男女比例1:1
@@ -342,13 +377,15 @@ def generate_job_seeker(seeker_count: int = 1000) -> List[Dict[str, Any]]:
 
     job_seekers = []
 
-    # 生成男性求职者数据
+    # 生成求职者数据
     for first_name, genders in seeker_names.items():
         for gender, names in genders.items():
             for name in names:
                 exp_industry = generate_expected_industry()
                 exp_cities = generate_expected_city()
-                job_seekers.append({
+                city = random.choice(exp_cities)
+                school = random_select_school(city, UNIVERSITIES)
+                js = {
                     "name": name,
                     "age": generate_age(),
                     "gender": gender,
@@ -365,8 +402,12 @@ def generate_job_seeker(seeker_count: int = 1000) -> List[Dict[str, Any]]:
                     "homepageType": generate_homepage_type(),
                     "homepageActivity": generate_homepage_activity(),
                     "balance": generate_balance(),
-                    "workbench": generate_workbench()
-                })
+                    "workbench": generate_workbench(),
+                    "school": school,
+                    "location": city
+                }
+                js["educationExperience"], graduated_year = generate_education_experience(js)
+                job_seekers.append(js)
 
     return job_seekers
 

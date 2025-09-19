@@ -6,7 +6,7 @@ import requests
 from dotenv import load_dotenv
 load_dotenv()
 
-from data_simulation.utils.request_tool import join_url
+from data_simulation.utils.request_tools import join_url
 
 BASE_URL = "https://www.mxnzp.com/api/address/list"
 

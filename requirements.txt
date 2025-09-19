@@ -1,3 +1,5 @@
+openai
+pyexcel
 webdriver-manager
 selenium
 requests
@@ -14,3 +16,5 @@ dot-env~=0.9.9
 python-dotenv~=1.1.1
 
 faker~=37.6.0
+
+pandas~=2.1.4

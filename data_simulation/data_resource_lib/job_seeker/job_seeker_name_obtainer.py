@@ -3,7 +3,7 @@ import re
 
 from newrcc.c_console import process
 
-from data_simulation.utils.request_tool import request_and_get_result, join_url
+from data_simulation.utils.request_tools import request_and_get_result, join_url
 
 
 BASE_URL = "https://www.resgain.net"

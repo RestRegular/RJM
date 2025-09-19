@@ -10,7 +10,7 @@ from selenium.webdriver.support import expected_conditions as EC
 from selenium.webdriver.support.ui import WebDriverWait
 from webdriver_manager.chrome import ChromeDriverManager
 
-from data_simulation.utils.request_tool import request_and_get_result
+from data_simulation.utils.request_tools import request_and_get_result
 
 
 def obtain_source() -> str:
